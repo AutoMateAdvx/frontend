@@ -3,11 +3,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
 import { Navigate, useNavigate } from "react-router-dom";
-import Live2DModelComponent from "../components/live2d";
+import Live2DCanvas from "../components/live2d";
 
 function AutoMate() {
   const [collapsed, setCollapsed] = useState(false);
-
+  const [release,setRelease] = useState(false)
   const navigate = useNavigate();
 
   return (
@@ -88,7 +88,7 @@ function AutoMate() {
             </div>
           </div>
           <div style={{ width: "25%", paddingLeft: "1rem" }}>
-            <Live2DModelComponent />
+            <Live2DCanvas />
           </div>
         </div>
       </div>

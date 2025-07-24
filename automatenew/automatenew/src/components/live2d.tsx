@@ -1,87 +1,113 @@
-import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { Live2DModel } from 'pixi-live2d-display';
+import { Application } from 'pixi.js';
+import React, { useEffect, useRef, useCallback, memo } from 'react';
+import { Live2DModel } from 'pixi-live2d-display/cubism4';
 
-// Declare PIXI on window for the plugin
-declare global {
-  interface Window {
-    PIXI: typeof PIXI;
-  }
-}
+if (typeof window !== 'undefined') (window as any).PIXI = PIXI;
 
-const Live2DViewer: React.FC = () => {
+const SENSITIVITY = 0.95;
+const SMOOTHNESS = 1;
+const RECENTER_DELAY = 1000;
+
+const preloadModel = () => Live2DModel.from('http://localhost:8888/Haru/Haru.model3.json');
+
+const Model: React.FC = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const appRef = useRef<PIXI.Application | null>(null);
-  const modelRef = useRef<Live2DModel | null>(null);
+  const modelRef = useRef<any>(null);
+  const appRef = useRef<Application | null>(null);
+  const mouseMoveRef = useRef({ last: 0, target: { x: 0, y: 0 }, current: { x: 0, y: 0 } });
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    // Initialize PIXI application
-    const app = new PIXI.Application({
-      view: canvasRef.current,
-      resizeTo: window,
-      backgroundAlpha: 0, // Transparent background
-      autoStart: true
-    });
-    appRef.current = app;
-    window.PIXI = PIXI; // Required for pixi-live2d-display
-
-    // Load and setup Live2D model
-    const loadModel = async () => {
-      try {
-        const model = await Live2DModel.from('/Users/choijiwon/advx/frontend/automatenew/automatenew/public/models/hallo/hallo.json');
-        modelRef.current = model;
-
-        // Add model to stage
-        app.stage.addChild(model);
-
-        // Set initial transformations
-        model.x = app.screen.width / 2;
-        model.y = app.screen.height * 0.9;
-        model.scale.set(0.15); // Adjusted for typical screen sizes
-
-        // Set up interactions
-        model.interactive = true;
-        model.on('hit', (hitAreas: string[]) => {
-          if (hitAreas.includes('body')) {
-            model.motion('tap_body');
-          }
-        });
-
-        // Handle window resize
-        const onResize = () => {
-          model.x = app.screen.width / 2;
-          model.y = app.screen.height * 0.9;
-        };
-        window.addEventListener('resize', onResize);
-
-        return () => {
-          window.removeEventListener('resize', onResize);
-        };
-      } catch (error) {
-        console.error('Failed to load Live2D model:', error);
-      }
-    };
-
-    const cleanupResize = loadModel();
+  const updateModelSize = useCallback(() => {
+    const model = modelRef.current;
+    const app = appRef.current;
+    if (model && app) {
+      const scale = Math.min(app.screen.width / model.width, app.screen.height / model.height);
+      model.scale.set(scale);
+      model.position.set(app.screen.width / 2, app.screen.height * 0.85);
+    }
   }, []);
 
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <canvas
-        ref={canvasRef}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-          top: 0,
-          left: 0
-        }}
-      />
-    </div>
-  );
-};
+  const animateModel = useCallback((deltaTime: number) => {
+    const model = modelRef.current;
+    if (model) {
+      const now = Date.now();
+      const factor = Math.max(0, Math.min((now - mouseMoveRef.current.last - RECENTER_DELAY) / 1000, 1));
+      const easeFactor = Math.sin(Math.PI * factor / 2);
+      mouseMoveRef.current.current.x += (mouseMoveRef.current.target.x * (1 - easeFactor) - mouseMoveRef.current.current.x) * SMOOTHNESS * deltaTime;
+      mouseMoveRef.current.current.y += (mouseMoveRef.current.target.y * (1 - easeFactor) - mouseMoveRef.current.current.y) * SMOOTHNESS * deltaTime;
+      model.internalModel.focusController?.focus(mouseMoveRef.current.current.x, mouseMoveRef.current.current.y);
+    }
+  }, []);
 
-export default Live2DViewer;
+  const renderLoop = useCallback((deltaTime: number) => {
+    animateModel(deltaTime);
+  }, [animateModel]);
+
+  useEffect(() => {
+    (async () => {
+      const app = new Application({
+        view: canvasRef.current!,
+        backgroundAlpha: 0,
+        resizeTo: window,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
+        width: 200,
+      });
+      appRef.current = app;
+
+      try {
+        modelRef.current = await preloadModel();
+        app.stage.addChild(modelRef.current);
+        modelRef.current.anchor.set(0.5, 0.78);
+        updateModelSize();
+
+        const handleMouseMove = (event: MouseEvent) => {
+          const rect = appRef.current?.view.getBoundingClientRect();
+          if (rect) {
+            const { clientX, clientY } = event;
+            mouseMoveRef.current.target = {
+              x: ((clientX - rect.left) / rect.width - 0.5) * 2 * SENSITIVITY,
+              y: -(((clientY - rect.top) / rect.height - 0.5) * 2 * SENSITIVITY),
+            };
+            mouseMoveRef.current.last = Date.now();
+          }
+        };
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+        app.ticker.add(renderLoop);
+
+        const handleResize = () => {
+          app.renderer.resize(window.innerWidth, window.innerHeight);
+          updateModelSize();
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+          window.removeEventListener('mousemove', handleMouseMove);
+          app.ticker.remove(renderLoop);
+          app.destroy(true, { children: true, texture: true, baseTexture: true });
+        };
+      } catch (error) {
+        console.error('Error setting up Pixi.js application:', error);
+      }
+    })();
+  }, [renderLoop, updateModelSize]);
+
+  // useEffect(() => {
+  //   if (lastMessage?.role === 'assistant' && modelRef.current) {
+  //     const duration = lastMessage.content.length * 55;
+  //     const startTime = performance.now();
+  //     const animate = (time: number) => {
+  //       const elapsedMS = time - startTime;
+  //       modelRef.current.internalModel.coreModel.setParameterValueById('ParamMouthOpenY',
+  //         elapsedMS < duration ? Math.sin(elapsedMS / 100) * 0.5 + 0.5 : 0);
+  //       if (elapsedMS < duration) requestAnimationFrame(animate);
+  //     };
+  //     requestAnimationFrame(animate);
+  //   }
+  // }, [lastMessage]);
+
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
+});
+
+export default Model;

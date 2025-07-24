@@ -1,0 +1,6 @@
+[submodule "automatenew/automatenew/src/Live2D/Render"]
+	path = automatenew/automatenew/src/Live2D/Render
+	url = https://github.com/couchette/cumbismweb-render.git
+[submodule "automatenew/automatenew/src/Live2D/Live2DFramework"]
+	path = automatenew/automatenew/src/Live2D/Live2DFramework
+	url = https://github.com/Live2D/CubismWebFramework.git
