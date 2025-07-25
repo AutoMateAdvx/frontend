@@ -4,6 +4,8 @@ import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
 import { Navigate, useNavigate } from "react-router-dom";
 import Live2DCanvas from "../components/live2d";
+import Live2dRender from "../components/live2dRender";
+import Live2dProvider from "../components/live2dProvider";
 
 function AutoMate() {
   const [collapsed, setCollapsed] = useState(false);
@@ -106,7 +108,8 @@ function AutoMate() {
             </div>
           </div>
           <div style={{ width: "25%", paddingLeft: "1rem" }}>
-            <Live2DCanvas />
+            {/* <Live2DCanvas /> */}
+            <Live2dProvider />
           </div>
         </div>
       </div>
