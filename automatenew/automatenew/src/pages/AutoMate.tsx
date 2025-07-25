@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
@@ -7,8 +7,22 @@ import Live2DCanvas from "../components/live2d";
 
 function AutoMate() {
   const [collapsed, setCollapsed] = useState(false);
-  const [release,setRelease] = useState(false)
+  const [release, setRelease] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1100;
+      setIsMobile(mobile);
+      if (mobile) {
+        setCollapsed(true); // Auto-collapse on mobile
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div>
@@ -41,20 +55,25 @@ function AutoMate() {
           >
             ☰
           </button>
-          {!collapsed && (
-            <button className="btn btn-primary mt-3 mb-3 rounded-pill w-80" onClick={()=> navigate('/')}>
-              ← Back to Classes
-            </button>
-          )}
-          {!collapsed && (
-            <div className="pt-2">
-              <div className="card shadow-sm rounded-4">
-                <div className="card-header">Class Title</div>
-                <div className="card-body">
-                  <p className="card-text text-muted">
-                    This is some placeholder content for the selected class. You
-                    can add details, lessons, or actions here.
-                  </p>
+
+          {(!collapsed ) && (
+            <div className="sidebar-content">
+              <button
+                className="btn btn-primary mt-3 mb-3 rounded-pill w-80"
+                onClick={() => navigate("/")}
+              >
+                ← Back to Classes
+              </button>
+
+              <div className="pt-2">
+                <div className="card shadow-sm rounded-4">
+                  <div className="card-header">Class Title</div>
+                  <div className="card-body">
+                    <p className="card-text text-muted">
+                      This is some placeholder content for the selected class.
+                      You can add details, lessons, or actions here.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -79,11 +98,10 @@ function AutoMate() {
                 overflow: "hidden",
               }}
             >
-              <EditorComponent
-              />
+              <EditorComponent />
             </div>
             <div className="mt-3" style={{ flex: "0 0 25%" }}>
-              <TerminalComponent/>
+              <TerminalComponent />
               {/* You can replace this with xterm.js or a simulated output */}
             </div>
           </div>

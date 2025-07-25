@@ -58,7 +58,9 @@ export class LAppLive2DManager {
       if (LAppDefine.DebugLogEnable) {
         LAppPal.printMessage(`[APP]hit area: [${LAppDefine.HitAreaNameHead}]`);
       }
-      model.setRandomExpression();
+      console.log("headdd");
+      //model.setRandomExpression();
+
     } else if (model.hitTest(LAppDefine.HitAreaNameBody, x, y)) {
       if (LAppDefine.DebugLogEnable) {
         LAppPal.printMessage(`[APP]hit area: [${LAppDefine.HitAreaNameBody}]`);

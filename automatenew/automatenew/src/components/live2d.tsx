@@ -1,27 +1,36 @@
-import * as PIXI from 'pixi.js';
-import { Application } from 'pixi.js';
-import React, { useEffect, useRef, useCallback, memo } from 'react';
-import { Live2DModel } from 'pixi-live2d-display/cubism4';
+import * as PIXI from "pixi.js";
+import { Application } from "pixi.js";
+import React, { useEffect, useRef, useCallback, memo } from "react";
+import { Live2DModel } from "pixi-live2d-display/cubism4";
 
-if (typeof window !== 'undefined') (window as any).PIXI = PIXI;
+
+if (typeof window !== "undefined") (window as any).PIXI = PIXI;
 
 const SENSITIVITY = 0.95;
 const SMOOTHNESS = 1;
 const RECENTER_DELAY = 1000;
 
-const preloadModel = () => Live2DModel.from('http://localhost:8888/Haru/Haru.model3.json');
+const preloadModel = () =>
+  Live2DModel.from("http://localhost:8888/Haru/Haru.model3.json");
 
 const Model: React.FC = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const modelRef = useRef<any>(null);
   const appRef = useRef<Application | null>(null);
-  const mouseMoveRef = useRef({ last: 0, target: { x: 0, y: 0 }, current: { x: 0, y: 0 } });
+  const mouseMoveRef = useRef({
+    last: 0,
+    target: { x: 0, y: 0 },
+    current: { x: 0, y: 0 },
+  });
 
   const updateModelSize = useCallback(() => {
     const model = modelRef.current;
     const app = appRef.current;
     if (model && app) {
-      const scale = Math.min(app.screen.width / model.width, app.screen.height / model.height);
+      const scale = Math.min(
+        app.screen.width / model.width,
+        app.screen.height / model.height
+      );
       model.scale.set(scale);
       model.position.set(app.screen.width / 2, app.screen.height * 0.85);
     }
@@ -31,32 +40,65 @@ const Model: React.FC = memo(() => {
     const model = modelRef.current;
     if (model) {
       const now = Date.now();
-      const factor = Math.max(0, Math.min((now - mouseMoveRef.current.last - RECENTER_DELAY) / 1000, 1));
-      const easeFactor = Math.sin(Math.PI * factor / 2);
-      mouseMoveRef.current.current.x += (mouseMoveRef.current.target.x * (1 - easeFactor) - mouseMoveRef.current.current.x) * SMOOTHNESS * deltaTime;
-      mouseMoveRef.current.current.y += (mouseMoveRef.current.target.y * (1 - easeFactor) - mouseMoveRef.current.current.y) * SMOOTHNESS * deltaTime;
-      model.internalModel.focusController?.focus(mouseMoveRef.current.current.x, mouseMoveRef.current.current.y);
+      const factor = Math.max(
+        0,
+        Math.min((now - mouseMoveRef.current.last - RECENTER_DELAY) / 1000, 1)
+      );
+      const easeFactor = Math.sin((Math.PI * factor) / 2);
+      mouseMoveRef.current.current.x +=
+        (mouseMoveRef.current.target.x * (1 - easeFactor) -
+          mouseMoveRef.current.current.x) *
+        SMOOTHNESS *
+        deltaTime;
+      mouseMoveRef.current.current.y +=
+        (mouseMoveRef.current.target.y * (1 - easeFactor) -
+          mouseMoveRef.current.current.y) *
+        SMOOTHNESS *
+        deltaTime;
+      model.internalModel.focusController?.focus(
+        mouseMoveRef.current.current.x,
+        mouseMoveRef.current.current.y
+      );
     }
   }, []);
 
-  const renderLoop = useCallback((deltaTime: number) => {
-    animateModel(deltaTime);
-  }, [animateModel]);
+  const renderLoop = useCallback(
+    (deltaTime: number) => {
+      animateModel(deltaTime);
+    },
+    [animateModel]
+  );
 
   useEffect(() => {
     (async () => {
       const app = new Application({
         view: canvasRef.current!,
         backgroundAlpha: 0,
-        resizeTo: window,
+        // resizeTo: window,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
-        width: 200,
+        width: 250,
       });
       appRef.current = app;
 
       try {
         modelRef.current = await preloadModel();
+        console.log(
+          "Available motion groups:",
+          Object.keys(modelRef.current.internalModel.motionManager.definitions)
+        );
+
+        // Specifically check TapBody motions
+        console.log(
+          "TapBody motions:",
+          modelRef.current.internalModel.motionManager.definitions.TapBody
+        );
+
+        console.log(
+          "TapHead motions:",
+          modelRef.current.internalModel.motionManager.definitions.TapHead
+        );
+
         app.stage.addChild(modelRef.current);
         modelRef.current.anchor.set(0.5, 0.78);
         updateModelSize();
@@ -67,12 +109,18 @@ const Model: React.FC = memo(() => {
             const { clientX, clientY } = event;
             mouseMoveRef.current.target = {
               x: ((clientX - rect.left) / rect.width - 0.5) * 2 * SENSITIVITY,
-              y: -(((clientY - rect.top) / rect.height - 0.5) * 2 * SENSITIVITY),
+              y: -(
+                ((clientY - rect.top) / rect.height - 0.5) *
+                2 *
+                SENSITIVITY
+              ),
             };
             mouseMoveRef.current.last = Date.now();
           }
         };
-        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        window.addEventListener("mousemove", handleMouseMove, {
+          passive: true,
+        });
 
         app.ticker.add(renderLoop);
 
@@ -80,15 +128,54 @@ const Model: React.FC = memo(() => {
           app.renderer.resize(window.innerWidth, window.innerHeight);
           updateModelSize();
         };
-        window.addEventListener('resize', handleResize);
+        //window.addEventListener('resize', handleResize);
+
+  
+        modelRef.current.on("hit", (hitAreas: string[]) => {
+          console.log("Hit areas:", hitAreas); // Debug which areas were hit
+
+          if (hitAreas.includes("Head")) {
+            console.log("hitarea head");
+
+            const coreModel = modelRef.current.internalModel.coreModel;
+            coreModel.setExpression("F03");
+            // coreModel.setParameterValueById("ParamMouthOpenY", 1); // Open mouth
+            // setInterval(()=>{
+            //   coreModel.setParameterValueById("ParamMouthOpenY", 1); 
+            //   console.log('open mouth');
+            // }, 5000);
+            // Trigger random head motion from your available motions
+            //const headMotions = ["haru_g_m26", "haru_g_m02", "haru_g_m20"];
+            //const randomMotion =
+            //  headMotions[Math.floor(Math.random() * headMotions.length)];
+            //console.log(`Playing motion: ${randomMotion}`);
+            //modelRef.current.motion("TapHead");
+            
+
+            setTimeout(() => {
+              coreModel.setParameterValueById("ParamMouthOpenY", 0); // Close after 1s
+            }, 5000);
+            console.log("end of function");
+          }
+
+          if (hitAreas.includes("Body")) {
+            // Trigger body tap motion
+            modelRef.current.motion("TapBody");
+            console.log("hitarea body");
+          }
+        });
 
         return () => {
-          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener("mousemove", handleMouseMove);
           app.ticker.remove(renderLoop);
-          app.destroy(true, { children: true, texture: true, baseTexture: true });
+          app.destroy(true, {
+            children: true,
+            texture: true,
+            baseTexture: true,
+          });
         };
       } catch (error) {
-        console.error('Error setting up Pixi.js application:', error);
+        console.error("Error setting up Pixi.js application:", error);
       }
     })();
   }, [renderLoop, updateModelSize]);
@@ -107,7 +194,12 @@ const Model: React.FC = memo(() => {
   //   }
   // }, [lastMessage]);
 
-  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: "100%", height: "100%", display: "block" }}
+    />
+  );
 });
 
 export default Model;
