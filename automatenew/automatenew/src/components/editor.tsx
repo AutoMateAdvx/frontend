@@ -95,7 +95,13 @@ const getLanguageFromFileName = (fileName: string): string => {
   }
 };
 
-const EditorComponent = ({ fileTree }: { fileTree: any }) => {
+const EditorComponent = ({
+  fileTree,
+  onFileTreeChange,
+}: {
+  fileTree: any;
+  onFileTreeChange: (updatedTree: any) => void;
+}) => {
   const [tree, setTree] = useState<TreeNode | undefined>();
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   // Store file contents per file, initialized from original fileContents
@@ -128,19 +134,18 @@ const EditorComponent = ({ fileTree }: { fileTree: any }) => {
       console.log("Loaded tree:", expandedTree); // 👈 Inspect here
       setTree(expandedTree);
 
-
       const fileContentsMap: Record<string, string> = {};
       const collectFiles = (node: TreeNode) => {
         if (node.type === "file") {
-          console.log("uri", node.uri)
-          console.log("content", node.content)
+          console.log("uri", node.uri);
+          console.log("content", node.content);
           fileContentsMap[utils.getFileName(node.uri)] = node.content || ""; // assuming node has a `content` field
         }
         node.children?.forEach(collectFiles);
       };
       collectFiles(expandedTree);
       setFileContentsState(fileContentsMap);
-      console.log("fileContentsMap", fileContentsMap)
+      console.log("fileContentsMap", fileContentsMap);
       //return expandedTree;
     });
   }, []);
@@ -168,7 +173,26 @@ const EditorComponent = ({ fileTree }: { fileTree: any }) => {
       ...prev,
       [currentFile]: value,
     }));
+    console.log(tree);
+
+    const clonedTree = structuredClone(tree); // Safe deep copy
+
+    // Recursive function to find and update content
+    const updateTreeContent = (node: TreeNode) => {
+      if (node.type === "file" && utils.getFileName(node.uri) === currentFile) {
+        node.content = value;
+        return;
+      }
+
+      if (node.children) {
+        node.children.forEach(updateTreeContent);
+      }
+    };
+    updateTreeContent(clonedTree);
+    onFileTreeChange(clonedTree);
+    console.log("clone", clonedTree)
   };
+  
 
   const itemRender = (treeNode: TreeNode) => (
     <FileItemWithFileIcon treeNode={treeNode} />

@@ -12,7 +12,7 @@ import Live2DCanvas from "../components/live2d";
 import Live2dRender from "../components/live2dRender";
 import Live2dProvider from "../components/live2dProvider";
 import Model from "../components/live2d";
-import { getLevel, getCourse } from "../Api";
+import { getLevel, getCourse, submitCourse } from "../Api";
 import { CurrentLevel, CurrentCourse } from "../Interface";
 
 type LocationState = {
@@ -33,6 +33,8 @@ function AutoMate() {
   const location = useLocation<LocationState>();
   const { courseId, level } = location.state || { courseId: 555, level: 555 };
   const [levelToGet, setLevelToGet] = useState(level);
+
+  const [editedFileTree, setEditedFileTree] = useState<any>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -79,7 +81,26 @@ function AutoMate() {
     localStorage.setItem(`course_${courseId}_level`, `${levelToGet}`);
   }, [levelToGet]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async(levelId:number, courseId:number) => {
+    console.log("1", editedFileTree);
+    if(editedFileTree == null){
+      setEditedFileTree(currentLevel?.file_tree);
+    }
+    console.log("2", currentLevel?.file_tree);
+
+    try{
+      const response = await submitCourse({
+        level_id:levelId,
+        course_id:courseId,
+        user_file_tree: editedFileTree,
+      });
+      console.log("API response:", response);
+    }catch (error) {
+      console.error("Error creating course:", error);
+      // Optionally show error feedback to user here
+    }
+
+
     if (!currentCourse?.levels?.length) {
       console.error("No course selected");
       return;
@@ -284,7 +305,7 @@ function AutoMate() {
               }}
             >
               {currentLevel?.file_tree ? (
-                <EditorComponent fileTree={currentLevel?.file_tree} />
+                <EditorComponent fileTree={currentLevel?.file_tree} onFileTreeChange={setEditedFileTree} />
               ) : (
                 <div
                   style={{
@@ -312,7 +333,7 @@ function AutoMate() {
                 border: "1px solid #1e2a3a",
               }}
             >
-              <button
+              {currentLevel?(<button
                 style={{
                   backgroundColor: "#64ffda",
                   color: "#0a192f",
@@ -323,10 +344,25 @@ function AutoMate() {
                   fontWeight: "bold",
                   transition: "all 0.3s ease",
                 }}
-                onClick={handleSubmit}
+                onClick={() => handleSubmit(currentLevel.id, currentLevel.course_id)}
               >
                 提交
-              </button>
+              </button>):
+              (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "200px",
+                    color: "#64ffda",
+                  }}
+                >
+                  <div className="spinner-grow" style={{ color: "#64ffda" }} />
+                  <div style={{ marginTop: "1rem" }}>Loading...</div>
+                </div>
+              )}
               <TerminalComponent />
             </div>
           </div>

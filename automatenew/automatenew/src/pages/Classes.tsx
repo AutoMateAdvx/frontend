@@ -16,7 +16,7 @@ function Classes() {
   const handleClose = () => setShowModal(false);
 
   useEffect(() => {
-    //localStorage.clear();
+    localStorage.clear();
 
     const fetchData = async () => {
       try {
