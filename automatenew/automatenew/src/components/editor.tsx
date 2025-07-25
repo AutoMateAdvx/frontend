@@ -21,9 +21,9 @@ const sorter = (treeNodes: TreeNode[]) =>
     ["asc", "asc"]
   );
 
-const loadTree = () => {
-  return import("./tree.json").then((module) => module.default as TreeNode);
-};
+// const loadTree = () => {
+//   return import("./tree.json").then((module) => module.default as TreeNode);
+// };
 
 // File content mapping
 const fileContents: Record<string, string> = {
@@ -95,17 +95,54 @@ const getLanguageFromFileName = (fileName: string): string => {
   }
 };
 
-const EditorComponent = () => {
+const EditorComponent = ({ fileTree }: { fileTree: any }) => {
   const [tree, setTree] = useState<TreeNode | undefined>();
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   // Store file contents per file, initialized from original fileContents
-  const [fileContentsState, setFileContentsState] = useState<Record<string, string>>(fileContents);
+  const [fileContentsState, setFileContentsState] =
+    useState<Record<string, string>>(fileContents);
   const [language, setLanguage] = useState("javascript");
 
+  const loadTree = async (): Promise<TreeNode> => {
+    if (!fileTree) {
+      throw new Error("No level data loaded");
+    }
+    // Convert FileTreeNode to your existing TreeNode type if needed
+    return convertToTreeNode(fileTree);
+  };
+
+  // Example conversion function
+  const convertToTreeNode = (fileNode: any): TreeNode => ({
+    // Map properties according to your TreeNode interface
+    type: fileNode.type,
+    uri: fileNode.uri,
+    children: fileNode.children?.map(convertToTreeNode) || [],
+    content: fileNode.content,
+    expanded: false, // or whatever your TreeNode expects
+  });
+
   useEffect(() => {
-    loadTree()
-      .then((tree) => Object.assign(tree, { expanded: true }))
-      .then(setTree);
+    console.log("FILETREE", fileTree);
+    loadTree().then((tree) => {
+      const expandedTree = Object.assign(tree, { expanded: true });
+      console.log("Loaded tree:", expandedTree); // 👈 Inspect here
+      setTree(expandedTree);
+
+
+      const fileContentsMap: Record<string, string> = {};
+      const collectFiles = (node: TreeNode) => {
+        if (node.type === "file") {
+          console.log("uri", node.uri)
+          console.log("content", node.content)
+          fileContentsMap[utils.getFileName(node.uri)] = node.content || ""; // assuming node has a `content` field
+        }
+        node.children?.forEach(collectFiles);
+      };
+      collectFiles(expandedTree);
+      setFileContentsState(fileContentsMap);
+      console.log("fileContentsMap", fileContentsMap)
+      //return expandedTree;
+    });
   }, []);
 
   const handleFileClick = (treeNode: TreeNode) => {
@@ -194,7 +231,7 @@ const EditorComponent = () => {
           <Editor
             height="100%"
             language={language}
-            value={currentFile ? fileContentsState[currentFile] : ""}
+            value={currentFile ? fileContentsState[currentFile] : "testing"}
             onChange={handleEditorChange}
             theme="vs-dark"
             options={{

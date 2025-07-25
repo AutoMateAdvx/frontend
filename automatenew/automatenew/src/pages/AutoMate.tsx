@@ -6,7 +6,7 @@ import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // For tables, strikethroughs, etc.
 import rehypeHighlight from "rehype-highlight"; // For syntax highlighting
-import 'highlight.js/styles/github-dark.css';
+import "highlight.js/styles/github-dark.css";
 
 import Live2DCanvas from "../components/live2d";
 import Live2dRender from "../components/live2dRender";
@@ -63,10 +63,14 @@ function AutoMate() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getLevel({ course_id: courseId, level_id: levelToGet });
+        const data = await getLevel({
+          course_id: courseId,
+          level_id: levelToGet,
+        });
         console.log(data);
         setCurrentLevel(data);
         setIsLoading(false);
+        console.log("FILETREEONE", data?.file_tree);
       } catch (error) {
         console.error("Error fetching courses:", error);
       }
@@ -95,94 +99,102 @@ function AutoMate() {
   };
 
   return (
-    <div style={{
-      backgroundColor: '#121212',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
-    }}>
+    <div
+      style={{
+        backgroundColor: "#121212",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       {/* Top Navbar - Fixed height */}
-      <nav className="navbar navbar-expand-lg navbar-dark" style={{
-        backgroundColor: '#0a192f',
-        flexShrink: 0,
-        padding: '0.5rem 1rem',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
+      <nav className="navbar navbar-expand-lg" style={{ 
+        backgroundColor: '#020c1b',
+        borderBottom: '1px solid #1e2a3a'
       }}>
         <div className="container-fluid">
-          <div className="d-flex align-items-center">
-            <a className="navbar-brand fw-bold" style={{ color: '#64ffda' }} href="/">
-              Auto.Mate
-            </a>
-            <a className="navbar-brand text-muted ms-3" href="#">
-              Your AI powerhouse #edTech
-            </a>
-          </div>
+          <a className="navbar-brand fw-bold" href="#" style={{ color: '#64ffda' }}> {/* Teal accent */}
+            Auto.Mate
+          </a>
+          <span className="navbar-text" style={{ color: '#8892b0' }}> {/* Muted blue-gray */}
+            Your very own AI powerhouse #edTech
+          </span>
         </div>
       </nav>
-  
+
       {/* Main Content Area */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        overflow: 'hidden'
-      }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          overflow: "hidden",
+        }}
+      >
         {/* Sidebar - Elegant dark blue */}
-        <div style={{
-          width: collapsed ? "70px" : "350px",
-          backgroundColor: '#0a192f',
-          transition: 'width 0.3s ease',
-          overflowY: 'auto',
-          borderRight: '1px solid #1e2a3a',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+        <div
+          style={{
+            width: collapsed ? "70px" : "350px",
+            backgroundColor: "#0a192f",
+            transition: "width 0.3s ease",
+            overflowY: "auto",
+            borderRight: "1px solid #1e2a3a",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <button
             className="btn btn-sm m-2"
             style={{
-              backgroundColor: '#112240',
-              color: '#64ffda',
-              alignSelf: 'flex-start'
+              backgroundColor: "#112240",
+              color: "#64ffda",
+              alignSelf: "flex-start",
             }}
             onClick={() => setCollapsed(!collapsed)}
           >
-            {collapsed ? '☰' : '✕'}
+            {collapsed ? "☰" : "✕"}
           </button>
-  
+
           {!collapsed && (
-            <div style={{ padding: '1rem', flex: 1 }}>
+            <div style={{ padding: "1rem", flex: 1 }}>
               {!isLoading ? (
-                <div style={{
-                  backgroundColor: '#112240',
-                  borderRadius: '8px',
-                  padding: '1.5rem',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}>
-                  <div style={{
-                    color: '#ccd6f6',
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1rem',
-                    borderBottom: '1px solid #1e2a3a',
-                    paddingBottom: '0.5rem'
-                  }}>
+                <div
+                  style={{
+                    backgroundColor: "#112240",
+                    borderRadius: "8px",
+                    padding: "1.5rem",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#ccd6f6",
+                      fontSize: "1.25rem",
+                      fontWeight: "bold",
+                      marginBottom: "1rem",
+                      borderBottom: "1px solid #1e2a3a",
+                      paddingBottom: "0.5rem",
+                    }}
+                  >
                     {currentLevel?.title}
                   </div>
-                  <div style={{ color: '#8892b0' }}>
-                    <p style={{ marginBottom: '1rem' }}>
-                      <strong style={{ color: '#ccd6f6' }}>章节:</strong> {currentLevel?.order_number}/{currentCourse?.levels.length}
+                  <div style={{ color: "#8892b0" }}>
+                    <p style={{ marginBottom: "1rem" }}>
+                      <strong style={{ color: "#ccd6f6" }}>章节:</strong>{" "}
+                      {currentLevel?.order_number}/
+                      {currentCourse?.levels.length}
                     </p>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <strong style={{ color: '#ccd6f6' }}>描述:</strong>
-                      <div style={{ marginTop: '0.5rem' }}>
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <strong style={{ color: "#ccd6f6" }}>描述:</strong>
+                      <div style={{ marginTop: "0.5rem" }}>
                         <Markdown remarkPlugins={[remarkGfm]}>
                           {currentLevel?.description || ""}
                         </Markdown>
                       </div>
                     </div>
                     <div>
-                      <strong style={{ color: '#ccd6f6' }}>要求:</strong>
-                      <div style={{ marginTop: '0.5rem' }}>
+                      <strong style={{ color: "#ccd6f6" }}>要求:</strong>
+                      <div style={{ marginTop: "0.5rem" }}>
                         <Markdown remarkPlugins={[remarkGfm]}>
                           {currentLevel?.requirements || ""}
                         </Markdown>
@@ -191,28 +203,30 @@ function AutoMate() {
                   </div>
                 </div>
               ) : (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '200px',
-                  color: '#64ffda'
-                }}>
-                  <div className="spinner-grow" style={{ color: '#64ffda' }} />
-                  <div style={{ marginTop: '1rem' }}>Loading...</div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "200px",
+                    color: "#64ffda",
+                  }}
+                >
+                  <div className="spinner-grow" style={{ color: "#64ffda" }} />
+                  <div style={{ marginTop: "1rem" }}>Loading...</div>
                 </div>
               )}
               <button
                 style={{
-                  backgroundColor: '#0a192f',
-                  color: '#64ffda',
-                  border: '1px solid #64ffda',
-                  borderRadius: '20px',
-                  padding: '0.5rem 1rem',
-                  marginTop: '1.5rem',
-                  width: '100%',
-                  transition: 'all 0.3s ease'
+                  backgroundColor: "#0a192f",
+                  color: "#64ffda",
+                  border: "1px solid #64ffda",
+                  borderRadius: "20px",
+                  padding: "0.5rem 1rem",
+                  marginTop: "1.5rem",
+                  width: "100%",
+                  transition: "all 0.3s ease",
                 }}
                 onClick={() => navigate("/")}
               >
@@ -221,67 +235,93 @@ function AutoMate() {
             </div>
           )}
         </div>
-  
+
         {/* Main Content - Sleek dark layout */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          padding: '1rem',
-          overflow: 'hidden',
-          backgroundColor: '#0a192f'
-        }}>
-          {/* Editor/Terminal Column */}
-          <div style={{
+        <div
+          style={{
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            marginRight: '1rem'
-          }}>
+            display: "flex",
+            padding: "1rem",
+            overflow: "hidden",
+            backgroundColor: "#0a192f",
+          }}
+        >
+          {/* Editor/Terminal Column */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              marginRight: "1rem",
+            }}
+          >
             {/* Header */}
-            <div style={{
-              display: 'flex',
-              marginBottom: '1rem',
-              color: '#ccd6f6'
-            }}>
-              <p style={{ marginRight: '2rem' }}>
+            <div
+              style={{
+                display: "flex",
+                marginBottom: "1rem",
+                color: "#ccd6f6",
+              }}
+            >
+              <p style={{ marginRight: "2rem" }}>
                 <strong>课程:</strong> {currentLevel?.course.title}
               </p>
               <p>
                 <strong>关卡:</strong> {currentLevel?.id}/{currentLevel?.title}
               </p>
             </div>
-  
+
             {/* Editor - Glassmorphism effect */}
-            <div style={{
-              flex: 1,
-              backgroundColor: 'rgba(17, 34, 64, 0.7)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '8px',
-              border: '1px solid #1e2a3a',
-              overflow: 'hidden',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-            }}>
-              <EditorComponent />
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(17, 34, 64, 0.7)",
+                backdropFilter: "blur(10px)",
+                borderRadius: "8px",
+                border: "1px solid #1e2a3a",
+                overflow: "hidden",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+              }}
+            >
+              {currentLevel?.file_tree ? (
+                <EditorComponent fileTree={currentLevel?.file_tree} />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "200px",
+                    color: "#64ffda",
+                  }}
+                >
+                  <div className="spinner-grow" style={{ color: "#64ffda" }} />
+                  <div style={{ marginTop: "1rem" }}>Loading...</div>
+                </div>
+              )}
             </div>
-  
+
             {/* Terminal Section */}
-            <div style={{
-              marginTop: '1rem',
-              backgroundColor: 'rgba(17, 34, 64, 0.7)',
-              borderRadius: '8px',
-              padding: '1rem',
-              border: '1px solid #1e2a3a'
-            }}>
+            <div
+              style={{
+                marginTop: "1rem",
+                backgroundColor: "rgba(17, 34, 64, 0.7)",
+                borderRadius: "8px",
+                padding: "1rem",
+                border: "1px solid #1e2a3a",
+              }}
+            >
               <button
                 style={{
-                  backgroundColor: '#64ffda',
-                  color: '#0a192f',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '0.5rem 1rem',
-                  marginBottom: '1rem',
-                  fontWeight: 'bold',
-                  transition: 'all 0.3s ease'
+                  backgroundColor: "#64ffda",
+                  color: "#0a192f",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "1rem",
+                  fontWeight: "bold",
+                  transition: "all 0.3s ease",
                 }}
                 onClick={handleSubmit}
               >
@@ -290,18 +330,20 @@ function AutoMate() {
               <TerminalComponent />
             </div>
           </div>
-  
+
           {/* Model Viewer - Glass panel */}
-          <div style={{
-            width: '25%',
-            backgroundColor: 'rgba(17, 34, 64, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '8px',
-            padding: '1rem',
-            border: '1px solid #1e2a3a',
-            overflow: 'hidden',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-          }}>
+          <div
+            style={{
+              width: "25%",
+              backgroundColor: "rgba(17, 34, 64, 0.7)",
+              backdropFilter: "blur(10px)",
+              borderRadius: "8px",
+              padding: "1rem",
+              border: "1px solid #1e2a3a",
+              overflow: "hidden",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            }}
+          >
             <Model />
           </div>
         </div>
