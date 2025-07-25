@@ -78,37 +78,42 @@ function Classes() {
   };
 
   return (
-    <div
-      style={{ backgroundColor: "#0a0a0a", minHeight: "100vh", color: "white" }}
-    >
-      {/* Top Navbar */}
-      <nav
-        className="navbar navbar-expand-lg navbar-dark border-bottom border-secondary"
-        style={{ backgroundColor: "#121212" }}
-      >
+    <div style={{ 
+      backgroundColor: '#0a192f', // Deep navy blue background
+      minHeight: '100vh', 
+      color: '#ccd6f6' // Light blue-gray text
+    }}>
+      {/* Top Navbar - Darker blue with teal accent */}
+      <nav className="navbar navbar-expand-lg" style={{ 
+        backgroundColor: '#020c1b',
+        borderBottom: '1px solid #1e2a3a'
+      }}>
         <div className="container-fluid">
-          <a className="navbar-brand fw-bold" href="#">
+          <a className="navbar-brand fw-bold" href="#" style={{ color: '#64ffda' }}> {/* Teal accent */}
             Auto.Mate
           </a>
-          <span className="navbar-text text-light">
+          <span className="navbar-text" style={{ color: '#8892b0' }}> {/* Muted blue-gray */}
             Your very own AI powerhouse #edTech
           </span>
         </div>
       </nav>
-
+  
       {/* Welcome Section */}
-      <div
-        className="d-flex flex-column align-items-center text-center"
-        style={{ marginTop: "5%" }}
-      >
-        <h1 className="display-5 fw-bold">Welcome to Auto.Mate</h1>
-        <h4 className="text-secondary">
+      <div className="d-flex flex-column align-items-center text-center" style={{ marginTop: '5%' }}>
+        <h1 className="display-5 fw-bold" style={{ color: '#e6f1ff' }}>Welcome to Auto.Mate</h1>
+        <h4 className="" style={{ color: '#e6f1ff' }}>
           Your AI Powerhouse Companion for Learning Code
         </h4>
         <div className="mt-4 mb-5">
           <button
             type="button"
-            className="btn btn-outline-light px-4 py-2"
+            className="btn px-4 py-2"
+            style={{
+              backgroundColor: 'transparent',
+              color: '#64ffda',
+              border: '1px solid #64ffda',
+              transition: 'all 0.3s ease'
+            }}
             onClick={handleShow}
           >
             <i className="fas fa-plus me-2"></i> Add your GitHub Repo
@@ -116,7 +121,7 @@ function Classes() {
           <MyModal show={showModal} handleClose={handleClose} />
         </div>
       </div>
-
+  
       {/* Card Grid */}
       {!isLoading ? (
         <div className="container pb-5">
@@ -130,15 +135,15 @@ function Classes() {
                   onClick={() => handleCardClick(item)}
                 >
                   <div
-                    className="card bg-dark text-white border-0 rounded-4 shadow-sm h-100"
+                    className="card border-0 rounded-4 h-100"
                     style={{
                       transition: "all 0.3s ease",
-                      transform:
-                        hoveredCard === item.id ? "scale(1.08)" : "scale(1)",
-                      boxShadow:
-                        hoveredCard === item.id
-                          ? "0 10px 20px rgba(0,0,0,0.3)"
-                          : "none",
+                      transform: hoveredCard === item.id ? "scale(1.03)" : "scale(1)",
+                      backgroundColor: '#112240', // Dark blue card
+                      boxShadow: hoveredCard === item.id 
+                        ? '0 10px 20px rgba(100, 255, 218, 0.1)' // Teal glow
+                        : '0 4px 6px rgba(0,0,0,0.1)',
+                      border: '1px solid #1e2a3a'
                     }}
                     onMouseEnter={() => setHoveredCard(item.id)}
                     onMouseLeave={() => setHoveredCard(null)}
@@ -151,28 +156,35 @@ function Classes() {
                         style={{
                           height: "220px",
                           objectFit: "cover",
+                          borderTopLeftRadius: '0.75rem',
+                          borderTopRightRadius: '0.75rem'
                         }}
                       />
                     )}
                     <div className="card-body p-4">
-                      <h5 className="card-title fw-bold text-light mb-3">
+                      <h5 className="card-title fw-bold mb-3" style={{ color: '#e6f1ff' }}>
                         {item.title}
                       </h5>
-                      <p className="card-text text-light">{item.description}</p>
+                      <p className="card-text" style={{ color: '#8892b0' }}>
+                        {item.description}
+                      </p>
                     </div>
                     <div className="card-footer bg-transparent border-0 text-end pe-4 pb-3">
                       <div
                         className="progress"
                         role="progressbar"
-                        aria-label="Example 20px high"
-                        aria-valuenow={1}
-                        aria-valuemin={0}
-                        aria-valuemax={item.levels.length}
-                        style={{ height: "20px", marginBottom: "20px" }}
+                        style={{ 
+                          height: "8px",
+                          marginBottom: "20px",
+                          backgroundColor: '#1e2a3a'
+                        }}
                       >
                         <div
                           className="progress-bar"
-                          style={{ width: `${calculateProgress(item)}` }}
+                          style={{ 
+                            width: `${calculateProgress(item)}`,
+                            backgroundColor: '#64ffda' // Teal progress bar
+                          }}
                         ></div>
                       </div>
                     </div>
@@ -186,8 +198,8 @@ function Classes() {
           className="d-flex flex-column align-items-center justify-content-center"
           style={{ minHeight: "200px" }}
         >
-          <div className="spinner-grow text-primary" role="status" />
-          <div className="mt-3" style={{fontSize: 18}}>Loading...</div>
+          <div className="spinner-grow" style={{ color: '#64ffda' }} role="status" />
+          <div className="mt-3" style={{ fontSize: 18, color: '#ccd6f6' }}>Loading...</div>
         </div>
       )}
     </div>

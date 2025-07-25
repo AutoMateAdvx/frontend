@@ -3,10 +3,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // For tables, strikethroughs, etc.
 import rehypeHighlight from "rehype-highlight"; // For syntax highlighting
-import "highlight.js/styles/github.css";
+import 'highlight.js/styles/github-dark.css';
 
 import Live2DCanvas from "../components/live2d";
 import Live2dRender from "../components/live2dRender";
@@ -95,131 +95,213 @@ function AutoMate() {
   };
 
   return (
-    <div style={{backgroundColor:'#121212'}}>
-      {/* Top Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div style={{
+      backgroundColor: '#121212',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* Top Navbar - Fixed height */}
+      <nav className="navbar navbar-expand-lg navbar-dark" style={{
+        backgroundColor: '#0a192f',
+        flexShrink: 0,
+        padding: '0.5rem 1rem',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
+      }}>
         <div className="container-fluid">
-          <a className="navbar-brand" href="#">
-            Auto.Mate
-          </a>
-          <a className="navbar-brand" href="#">
-            Your very own AI powerhouse #edTech
-          </a>
+          <div className="d-flex align-items-center">
+            <a className="navbar-brand fw-bold" style={{ color: '#64ffda' }} href="/">
+              Auto.Mate
+            </a>
+            <a className="navbar-brand text-muted ms-3" href="#">
+              Your AI powerhouse #edTech
+            </a>
+          </div>
         </div>
       </nav>
-
-      <div className="d-flex">
-        {/* Side Navbar */}
-        <div
-          className={`border-end p-3 `}
-          style={{
-            width: collapsed ? "70px" : "350px",
-            height: "100vh",
-            transition: "width 0.3s ease",
-            overflow: "auto",
-            backgroundColor: 'darkgrey',
-          }}
-        >
+  
+      {/* Main Content Area */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        overflow: 'hidden'
+      }}>
+        {/* Sidebar - Elegant dark blue */}
+        <div style={{
+          width: collapsed ? "70px" : "350px",
+          backgroundColor: '#0a192f',
+          transition: 'width 0.3s ease',
+          overflowY: 'auto',
+          borderRight: '1px solid #1e2a3a',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
           <button
-            className="btn btn-light btn-outline-dark me-3"
+            className="btn btn-sm m-2"
+            style={{
+              backgroundColor: '#112240',
+              color: '#64ffda',
+              alignSelf: 'flex-start'
+            }}
             onClick={() => setCollapsed(!collapsed)}
           >
-            ☰
+            {collapsed ? '☰' : '✕'}
           </button>
-
+  
           {!collapsed && (
-            <div className="sidebar-content">
-              <div className="pt-2 mt-2">
-                {!isLoading ? <div className="card shadow-sm rounded-4">
-                  <div className="card-header fw-bold fs-5">
+            <div style={{ padding: '1rem', flex: 1 }}>
+              {!isLoading ? (
+                <div style={{
+                  backgroundColor: '#112240',
+                  borderRadius: '8px',
+                  padding: '1.5rem',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}>
+                  <div style={{
+                    color: '#ccd6f6',
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1rem',
+                    borderBottom: '1px solid #1e2a3a',
+                    paddingBottom: '0.5rem'
+                  }}>
                     {currentLevel?.title}
                   </div>
-                  <div className="card-body">
-                    <p className="text-muted mb-2">
-                      <strong>章节:</strong>{" "}
-                      {currentLevel?.order_number} / {currentCourse?.levels.length}
+                  <div style={{ color: '#8892b0' }}>
+                    <p style={{ marginBottom: '1rem' }}>
+                      <strong style={{ color: '#ccd6f6' }}>章节:</strong> {currentLevel?.order_number}/{currentCourse?.levels.length}
                     </p>
-                    <div className="mb-3">
-                      <strong>描述:</strong>
-                      <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight]}>
-                        {currentLevel?.description || ""}
-                      </ReactMarkdown>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <strong style={{ color: '#ccd6f6' }}>描述:</strong>
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <Markdown remarkPlugins={[remarkGfm]}>
+                          {currentLevel?.description || ""}
+                        </Markdown>
+                      </div>
                     </div>
                     <div>
-                      <strong>要求:</strong>
-                      <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight]}>
-                        {currentLevel?.requirements || ""}
-                      </ReactMarkdown>
+                      <strong style={{ color: '#ccd6f6' }}>要求:</strong>
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <Markdown remarkPlugins={[remarkGfm]}>
+                          {currentLevel?.requirements || ""}
+                        </Markdown>
+                      </div>
                     </div>
                   </div>
-                </div> : 
-                <div
-                className="d-flex flex-column align-items-center justify-content-center"
-                style={{ minHeight: "200px" }}
-              >
-                <div className="spinner-grow text-primary" role="status" />
-                <div className="mt-3" style={{fontSize: 18}}>Loading...</div>
-              </div>}
-              </div>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '200px',
+                  color: '#64ffda'
+                }}>
+                  <div className="spinner-grow" style={{ color: '#64ffda' }} />
+                  <div style={{ marginTop: '1rem' }}>Loading...</div>
+                </div>
+              )}
               <button
-                className="btn btn-primary mt-3 mb-3 rounded-pill w-80"
+                style={{
+                  backgroundColor: '#0a192f',
+                  color: '#64ffda',
+                  border: '1px solid #64ffda',
+                  borderRadius: '20px',
+                  padding: '0.5rem 1rem',
+                  marginTop: '1.5rem',
+                  width: '100%',
+                  transition: 'all 0.3s ease'
+                }}
                 onClick={() => navigate("/")}
               >
-                ← Back to Classes
+                ← 课程列表
               </button>
             </div>
           )}
         </div>
-
-        {/* Main Content */}
-
-        <div
-          className="p-4"
-          style={{ flex: 1, display: "flex", flexDirection: "row", backgroundColor: '#121212' }}
-        >
-          <div
-            className="d-flex flex-column"
-            style={{ flex: 1, maxWidth: "75%" }}
-          >
-            {" "}
-            <div className="d-flex ">
-              <p className="mb-0 me-5" style={{color:"white"}}>
+  
+        {/* Main Content - Sleek dark layout */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          padding: '1rem',
+          overflow: 'hidden',
+          backgroundColor: '#0a192f'
+        }}>
+          {/* Editor/Terminal Column */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            marginRight: '1rem'
+          }}>
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              marginBottom: '1rem',
+              color: '#ccd6f6'
+            }}>
+              <p style={{ marginRight: '2rem' }}>
                 <strong>课程:</strong> {currentLevel?.course.title}
               </p>
-              <p className="mb-0" style={{color:"white"}}>
-                <strong>关卡:</strong> {currentLevel?.id} /{" "}
-                {currentLevel?.title}
+              <p>
+                <strong>关卡:</strong> {currentLevel?.id}/{currentLevel?.title}
               </p>
             </div>
-            <div
-              style={{
-                flex: "0 0 65%",
-                maxHeight: "650px",
-                border: "1px solid black",
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-              }}
-            >
+  
+            {/* Editor - Glassmorphism effect */}
+            <div style={{
+              flex: 1,
+              backgroundColor: 'rgba(17, 34, 64, 0.7)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '8px',
+              border: '1px solid #1e2a3a',
+              overflow: 'hidden',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
               <EditorComponent />
             </div>
-            <div className="mt-2 " style={{ flex: "0 0 25%" }}>
+  
+            {/* Terminal Section */}
+            <div style={{
+              marginTop: '1rem',
+              backgroundColor: 'rgba(17, 34, 64, 0.7)',
+              borderRadius: '8px',
+              padding: '1rem',
+              border: '1px solid #1e2a3a'
+            }}>
               <button
-                className="btn btn-primary"
-                style={{ color: "white", marginRight: 1 }}
+                style={{
+                  backgroundColor: '#64ffda',
+                  color: '#0a192f',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '0.5rem 1rem',
+                  marginBottom: '1rem',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s ease'
+                }}
                 onClick={handleSubmit}
               >
                 提交
               </button>
               <TerminalComponent />
-              {/* You can replace this with xterm.js or a simulated output */}
             </div>
           </div>
-          <div style={{ width: "25%", paddingLeft: "1rem" }}>
-            {/* <Live2DCanvas /> */}
+  
+          {/* Model Viewer - Glass panel */}
+          <div style={{
+            width: '25%',
+            backgroundColor: 'rgba(17, 34, 64, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '8px',
+            padding: '1rem',
+            border: '1px solid #1e2a3a',
+            overflow: 'hidden',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
             <Model />
           </div>
         </div>
