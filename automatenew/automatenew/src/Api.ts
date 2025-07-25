@@ -15,6 +15,7 @@ export const listClasses = async () => {
 };
 
 interface GetLevelParams {
+  course_id: number,
   level_id: number;
 }
 
@@ -28,6 +29,7 @@ export const getLevel = async (params: GetLevelParams) => {
       // "Authorization": `Bearer ${token}`
     },
     body: JSON.stringify({
+      course_id: params.course_id,
       level_id: params.level_id,
     }),
   });

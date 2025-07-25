@@ -13,27 +13,32 @@ export interface Course {
 }
 
 
-export interface CurrentLevel {
-    content: LevelContent,
-    course: CourseContent,
-    course_id: number,
-    created_at: Date,
-    description: string,
-    id: number,
-    order_number: number,
-    requirements: string,
-    title: string,
-    updated_at: Date
-
-}
-export interface LevelContent {
-    examples: string[],
-}
-export interface CourseContent {
-    id: number,
-    tag: string,
-    title: string,
-}
+interface FileTreeNode {
+    type: 'file' | 'directory';
+    uri: string;
+    children: FileTreeNode[] | null;
+    content: string | null;
+  }
+  
+  interface LevelCourse {
+    id: number;
+    title: string;
+    tag: string;
+  }
+  
+  export interface CurrentLevel {
+    id: number;
+    course_id: number;
+    title: string;
+    description: string;
+    requirements: string;
+    order_number: number;
+    content: string | null;
+    created_at: string;
+    updated_at: string;
+    course: LevelCourse;
+    file_tree: FileTreeNode;
+  }
 
 export interface CourseLevel {
     id: number,

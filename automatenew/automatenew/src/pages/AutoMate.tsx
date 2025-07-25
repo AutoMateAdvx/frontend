@@ -63,7 +63,7 @@ function AutoMate() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getLevel({ level_id: levelToGet });
+        const data = await getLevel({ course_id: courseId, level_id: levelToGet });
         console.log(data);
         setCurrentLevel(data);
         setIsLoading(false);
