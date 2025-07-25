@@ -313,7 +313,7 @@ const Model: React.FC = memo(() => {
       const app = new Application({
         view: canvasRef.current!,
         backgroundAlpha: 0.7,
-        backgroundColor: 0x111184,
+        backgroundColor: 0x0a192f,
         // resizeTo: window.innerWidth/2,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,

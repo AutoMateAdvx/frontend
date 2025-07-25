@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MyModal from "../components/modal";
 import "bootstrap/dist/js/bootstrap.bundle.min";
-import { listClasses } from "../Api";
+import { listClasses, getCourse } from "../Api";
 import { Course, Level } from "../Interface";
 
 function Classes() {
@@ -10,17 +10,20 @@ function Classes() {
   const [showModal, setShowModal] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [courses, setCourses] = useState<Course[]>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const handleShow = () => setShowModal(true);
   const handleClose = () => setShowModal(false);
 
   useEffect(() => {
+    //localStorage.clear();
 
     const fetchData = async () => {
       try {
         const data = await listClasses();
         console.log(data);
         setCourses(data.courses);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching courses:", error);
       }
@@ -28,19 +31,51 @@ function Classes() {
     fetchData();
   }, []);
 
+  const calculateProgress = (item: Course): string => {
+    if (!item.levels || item.levels.length === 0) return "0%";
 
+    const lowestLevel = item.levels[0]?.id;
+    const noLevels = item.levels.length;
 
-  const handleCardClick=(item: Course)=>{
+    if (typeof lowestLevel !== "number") return "0%";
+
+    const storedLevelStr = localStorage.getItem(`course_${item.id}_level`);
+    const storedLevel = storedLevelStr ? parseInt(storedLevelStr) : NaN;
+    const currentLevel = !isNaN(storedLevel) ? storedLevel : lowestLevel;
+
+    const diff = currentLevel - lowestLevel;
+    const progress = (diff / noLevels) * 100;
+
+    return `${Math.min(Math.max(progress, 0), 100).toFixed(0)}%`;
+  };
+
+  const handleCardClick = async (item: Course) => {
     const courseId = item.id;
-    const savedLevel = localStorage.getItem(`course_${courseId}_level`);
-    const level = savedLevel !== null ? parseInt(savedLevel) : 1;
-    if (savedLevel === null) {
-      localStorage.setItem(`course_${courseId}_level`, "1");
+    let lowestLevelInCourse = 0;
+
+    try {
+      const data = await getCourse({ course_id: courseId });
+      console.log(data.levels[0].id);
+      lowestLevelInCourse = data.levels[0].id;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
     }
+
+    console.log("courseid", courseId);
+    const savedLevel = localStorage.getItem(`course_${courseId}_level`);
+    const level =
+      savedLevel !== null ? parseInt(savedLevel) : lowestLevelInCourse;
+    if (savedLevel === null) {
+      localStorage.setItem(
+        `course_${courseId}_level`,
+        `${lowestLevelInCourse}`
+      );
+    }
+    console.log("CURRENTLEVEL", level);
     navigate("/automate", {
       state: { courseId, level },
     });
-  }
+  };
 
   return (
     <div
@@ -83,14 +118,17 @@ function Classes() {
       </div>
 
       {/* Card Grid */}
-      <div className="container pb-5">
-        <div className="row g-4">
-          {Array.isArray(courses) &&
-            courses?.map((item) => (
-              <div key={item.id} className="col-12 col-md-6 col-lg-4"style={{ cursor: "pointer" }}
-              onClick={() => handleCardClick(item)}
-        >
-                
+      {!isLoading ? (
+        <div className="container pb-5">
+          <div className="row g-4">
+            {Array.isArray(courses) &&
+              courses?.map((item) => (
+                <div
+                  key={item.id}
+                  className="col-12 col-md-6 col-lg-4"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleCardClick(item)}
+                >
                   <div
                     className="card bg-dark text-white border-0 rounded-4 shadow-sm h-100"
                     style={{
@@ -120,21 +158,38 @@ function Classes() {
                       <h5 className="card-title fw-bold text-light mb-3">
                         {item.title}
                       </h5>
-                      <p className="card-text text-light">
-                        {item.description}
-                      </p>
+                      <p className="card-text text-light">{item.description}</p>
                     </div>
                     <div className="card-footer bg-transparent border-0 text-end pe-4 pb-3">
-                      <button className="btn btn-outline-dark rounded-pill px-4">
-                        View Class
-                      </button>
+                      <div
+                        className="progress"
+                        role="progressbar"
+                        aria-label="Example 20px high"
+                        aria-valuenow={1}
+                        aria-valuemin={0}
+                        aria-valuemax={item.levels.length}
+                        style={{ height: "20px", marginBottom: "20px" }}
+                      >
+                        <div
+                          className="progress-bar"
+                          style={{ width: `${calculateProgress(item)}` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
-              
-              </div>
-            ))}
+                </div>
+              ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div
+          className="d-flex flex-column align-items-center justify-content-center"
+          style={{ minHeight: "200px" }}
+        >
+          <div className="spinner-grow text-primary" role="status" />
+          <div className="mt-3" style={{fontSize: 18}}>Loading...</div>
+        </div>
+      )}
     </div>
   );
 }

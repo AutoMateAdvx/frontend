@@ -21,6 +21,7 @@ function AutoMate() {
   const [release, setRelease] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [currentLevel, setCurrentLevel] = useState<CurrentLevel>();
   const [currentCourse, setCurrentCourse] = useState<CurrentCourse>();
@@ -46,7 +47,7 @@ function AutoMate() {
     const fetchData = async () => {
       try {
         const data = await getCourse({ course_id: courseId });
-        console.log(data);
+        console.log(data.levels);
         setCurrentCourse(data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -61,6 +62,7 @@ function AutoMate() {
         const data = await getLevel({ level_id: levelToGet });
         console.log(data);
         setCurrentLevel(data);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching courses:", error);
       }
@@ -70,12 +72,15 @@ function AutoMate() {
   }, [levelToGet]);
 
   const handleSubmit = () => {
-    if (!currentCourse) {
+    if (!currentCourse?.levels?.length) {
       console.error("No course selected");
       return;
     }
 
-    const totalLevels = currentCourse?.levels.length;
+    const levelIds = currentCourse.levels.map((level) => level.id);
+    const maxLevelId = Math.max(...levelIds);
+
+    const totalLevels = maxLevelId;
     console.log("total levels", totalLevels);
     if (levelToGet < totalLevels) {
       setLevelToGet((prev: number) => prev + 1);
@@ -86,7 +91,7 @@ function AutoMate() {
   };
 
   return (
-    <div>
+    <div style={{backgroundColor:'#121212'}}>
       {/* Top Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container-fluid">
@@ -108,7 +113,7 @@ function AutoMate() {
             height: "150vh",
             transition: "width 0.3s ease",
             overflow: "hidden",
-            backgroundColor: "#03002e",
+            backgroundColor: 'darkgrey',
           }}
         >
           <button
@@ -121,14 +126,14 @@ function AutoMate() {
           {!collapsed && (
             <div className="sidebar-content">
               <div className="pt-2 mt-2">
-                <div className="card shadow-sm rounded-4">
+                {!isLoading ? <div className="card shadow-sm rounded-4">
                   <div className="card-header fw-bold fs-5">
                     {currentLevel?.title}
                   </div>
                   <div className="card-body">
                     <p className="text-muted mb-2">
-                      <strong>Level Number:</strong>{" "}
-                      {currentLevel?.order_number}
+                      <strong>Level Order:</strong>{" "}
+                      {currentLevel?.order_number} / {currentCourse?.levels.length}
                     </p>
                     <div className="mb-3">
                       <strong>Description:</strong>
@@ -143,7 +148,14 @@ function AutoMate() {
                       </ReactMarkdown>
                     </div>
                   </div>
-                </div>
+                </div> : 
+                <div
+                className="d-flex flex-column align-items-center justify-content-center"
+                style={{ minHeight: "200px" }}
+              >
+                <div className="spinner-grow text-primary" role="status" />
+                <div className="mt-3" style={{fontSize: 18}}>Loading...</div>
+              </div>}
               </div>
               <button
                 className="btn btn-primary mt-3 mb-3 rounded-pill w-80"
@@ -159,7 +171,7 @@ function AutoMate() {
 
         <div
           className="p-4"
-          style={{ flex: 1, display: "flex", flexDirection: "row" }}
+          style={{ flex: 1, display: "flex", flexDirection: "row", backgroundColor: '#121212' }}
         >
           <div
             className="d-flex flex-column"
@@ -167,11 +179,11 @@ function AutoMate() {
           >
             {" "}
             <div className="d-flex ">
-              <p className="mb-0 me-5">
+              <p className="mb-0 me-5" style={{color:"white"}}>
                 <strong>Course:</strong> {currentLevel?.course.title}
               </p>
-              <p className="mb-0">
-                <strong>Level Number:</strong> {currentLevel?.order_number} /{" "}
+              <p className="mb-0" style={{color:"white"}}>
+                <strong>Level Number:</strong> {currentLevel?.id} /{" "}
                 {currentLevel?.title}
               </p>
             </div>

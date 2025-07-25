@@ -49,7 +49,7 @@ interface CreateCourseParams {
 
 export const createCourse = async (params: CreateCourseParams) => {
   console.log(params);
-  const response = await fetch(`${API_BASE_URL}/api/levels/get`, {
+  const response = await fetch(`${API_BASE_URL}/api/courses/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
