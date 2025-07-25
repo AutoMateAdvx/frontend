@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import {
   FileTree,
@@ -25,64 +25,130 @@ const loadTree = () => {
   return import("./tree.json").then((module) => module.default as TreeNode);
 };
 
-const EditorComponent = () => {
-  const languageOptions = [
-    { label: "JavaScript", value: "javascript" },
-    { label: "Python", value: "python" },
-    { label: "Java", value: "java" },
-    { label: "Go", value: "go" },
-    { label: "C#", value: "csharp" },
-    { label: "C++", value: "cpp" },
-    { label: "TypeScript", value: "typescript" },
-    { label: "HTML", value: "html" },
-    { label: "CSS", value: "css" },
-    { label: "JSON", value: "json" },
-  ];
+// File content mapping
+const fileContents: Record<string, string> = {
+  ".babelrc": `{
+  "presets": ["@babel/preset-env", "@babel/preset-react"]
+}`,
+  ".gitignore": `node_modules/
+dist/
+.DS_Store
+`,
+  ".gitmodules": `[submodule "example"]
+  path = example
+  url = https://github.com/sinm/react-file-tree-example.git
+`,
+  "package.json": `{
+  "name": "react-file-tree",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "react": "^17.0.2"
+  }
+}`,
+  "README.md": `# React File Tree
 
+A customizable file tree component for React applications.
+`,
+  "index.js": `import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(<App />, document.getElementById('root'));
+`,
+};
+
+// Helper function to get language from filename
+const getLanguageFromFileName = (fileName: string): string => {
+  const extension = fileName.split(".").pop()?.toLowerCase();
+  switch (extension) {
+    case "js":
+      return "javascript";
+    case "jsx":
+      return "javascript";
+    case "ts":
+      return "typescript";
+    case "tsx":
+      return "typescript";
+    case "json":
+      return "json";
+    case "md":
+      return "markdown";
+    case "html":
+      return "html";
+    case "css":
+      return "css";
+    case "php":
+      return "php";
+    case "py":
+      return "python";
+    case "rb":
+      return "ruby";
+    case "java":
+      return "java";
+    case "kt":
+      return "kotlin";
+    case "go":
+      return "go";
+    case "rs":
+      return "rust";
+    default:
+      return "plaintext";
+  }
+};
+
+const EditorComponent = () => {
   const [tree, setTree] = useState<TreeNode | undefined>();
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [currentContent, setCurrentContent] = useState<string>("");
+  const [language, setLanguage] = useState("javascript");
+
   useEffect(() => {
     loadTree()
-      // expand root node
       .then((tree) => Object.assign(tree, { expanded: true }))
       .then(setTree);
   }, []);
-  const toggleExpanded: FileTreeProps["onItemClick"] = (treeNode) => {
-    setTree((tree) =>
-      utils.assignTreeNode(tree, treeNode.uri, {
-        expanded: !treeNode.expanded,
-      })
-    );
+
+  const handleFileClick = (treeNode: TreeNode) => {
+    if (treeNode.type === "directory") {
+      // Toggle directory expansion
+      setTree((tree) =>
+        utils.assignTreeNode(tree, treeNode.uri, {
+          expanded: !treeNode.expanded,
+        })
+      );
+    } else {
+      // Handle file click
+      const fileName = utils.getFileName(treeNode.uri);
+      setCurrentFile(fileName);
+      setCurrentContent(
+        fileContents[fileName] || `// No content available for ${fileName}`
+      );
+      setLanguage(getLanguageFromFileName(fileName));
+    }
   };
 
-  // you can customize item renderer
   const itemRender = (treeNode: TreeNode) => (
     <FileItemWithFileIcon treeNode={treeNode} />
   );
 
-  const [language, setLanguage] = useState("javascript");
-
-  const files = {
-    "index.html": "<!DOCTYPE html>...",
-    "style.css": "body { background: #1e1e1e; }",
-    "app.js": 'console.log("Hello World")',
-  };
-
-  // Track state
-  const [currentFile, setCurrentFile] = useState("app.js");
-
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <select
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        style={{ marginBottom: "8px", width: "150px", padding: "4px" }}
+      <div
+        style={{
+          padding: "8px",
+          background: "#1e1e1e",
+          color: "white",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
-        {languageOptions.map((lang) => (
-          <option key={lang.value} value={lang.value}>
-            {lang.label}
-          </option>
-        ))}
-      </select>
+        <div>
+          {currentFile ? `Editing: ${currentFile}` : "Select a file to edit"}
+        </div>
+        <div>{`Currently editing in: ${language}`}</div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -90,7 +156,7 @@ const EditorComponent = () => {
           overflow: "hidden",
         }}
       >
-        {/* File Tree Panel - 25% width */}
+        {/* File Tree Panel - 20% width */}
         <div
           style={{
             width: "20%",
@@ -99,20 +165,20 @@ const EditorComponent = () => {
             overflow: "auto",
             background: "#1e1e1e",
             borderRight: "1px solid #333",
-            color:"white"
+            color: "white",
           }}
         >
           {tree && (
             <FileTree
               itemRenderer={itemRender}
               tree={tree}
-              onItemClick={toggleExpanded}
+              onItemClick={handleFileClick}
               sorter={sorter}
             />
           )}
         </div>
 
-        {/* Editor Panel - 75% width */}
+        {/* Editor Panel - 80% width */}
         <div
           style={{
             flex: 1,
@@ -120,23 +186,25 @@ const EditorComponent = () => {
             overflow: "hidden",
           }}
         >
-          <Editor
-            height="100%"
-            language={language}
-            value={files[currentFile as keyof typeof files]}
-            onChange={(value) => {
-              // Handle editor changes if needed
-            }}
-            theme="vs-dark"
-            options={{
-              padding: { top: 10 },
-              fontSize: 14,
-              automaticLayout: true,
-            }}
-          />
+          {
+            <Editor
+              height="100%"
+              language={language}
+              value={currentContent}
+              onChange={(value) => {
+                if (value) setCurrentContent(value);
+              }}
+              theme="vs-dark"
+              options={{
+                padding: { top: 10 },
+                fontSize: 14,
+                automaticLayout: true,
+                minimap: { enabled: true },
+              }}
+            />
+          }
         </div>
       </div>
-
     </div>
   );
 };

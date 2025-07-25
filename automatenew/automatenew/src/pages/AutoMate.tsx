@@ -41,31 +41,25 @@ function AutoMate() {
       <div className="d-flex">
         {/* Side Navbar */}
         <div
-          className={`bg-light border-end p-3 `}
+          className={`border-end p-3 `}
           style={{
             width: collapsed ? "70px" : "350px",
             height: "100vh",
             transition: "width 0.3s ease",
             overflow: "hidden",
+            backgroundColor: "#03002e",
           }}
         >
           <button
-            className="btn btn-outline-dark me-3"
+            className="btn btn-light btn-outline-dark me-3"
             onClick={() => setCollapsed(!collapsed)}
           >
             ☰
           </button>
 
-          {(!collapsed ) && (
+          {!collapsed && (
             <div className="sidebar-content">
-              <button
-                className="btn btn-primary mt-3 mb-3 rounded-pill w-80"
-                onClick={() => navigate("/")}
-              >
-                ← Back to Classes
-              </button>
-
-              <div className="pt-2">
+              <div className="pt-2 mt-2">
                 <div className="card shadow-sm rounded-4">
                   <div className="card-header">Class Title</div>
                   <div className="card-body">
@@ -76,6 +70,12 @@ function AutoMate() {
                   </div>
                 </div>
               </div>
+              <button
+                className="btn btn-primary mt-3 mb-3 rounded-pill w-80"
+                onClick={() => navigate("/")}
+              >
+                ← Back to Classes
+              </button>
             </div>
           )}
         </div>
@@ -99,8 +99,14 @@ function AutoMate() {
               }}
             >
               <EditorComponent />
+             
             </div>
-            <div className="mt-3" style={{ flex: "0 0 25%" }}>
+            
+            <div className="mt-2 " style={{ flex: "0 0 25%" }}>
+            <button
+                className="btn btn-primary" style={{color: "white", marginRight: 1}}
+                
+              >Submit</button>
               <TerminalComponent />
               {/* You can replace this with xterm.js or a simulated output */}
             </div>

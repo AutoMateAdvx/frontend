@@ -1,8 +1,8 @@
 import * as PIXI from "pixi.js";
 import { Application } from "pixi.js";
-import React, { useEffect, useRef, useCallback, memo } from "react";
+import React, { useEffect, useRef, useCallback, memo, useState } from "react";
 import { Live2DModel } from "pixi-live2d-display/cubism4";
-
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 if (typeof window !== "undefined") (window as any).PIXI = PIXI;
 
@@ -36,6 +36,12 @@ const Model: React.FC = memo(() => {
     }
   }, []);
 
+  const mouthState = useRef({
+    isOpen: false,
+    openStartTime: 0,
+    duration: 10000, // 10 seconds
+  });
+
   const animateModel = useCallback((deltaTime: number) => {
     const model = modelRef.current;
     if (model) {
@@ -61,6 +67,32 @@ const Model: React.FC = memo(() => {
       );
     }
   }, []);
+  const chatInput = () => {
+    return (
+      <div className="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+        <img
+          src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
+          alt="avatar 3"
+          style="width: 40px; height: 100%;"
+        />
+        <input
+          type="text"
+          className="form-control form-control-lg"
+          id="exampleFormControlInput1"
+          placeholder="Type message"
+        />
+        <a className="ms-1 text-muted" href="#!">
+          <i className="fas fa-paperclip"></i>
+        </a>
+        <a className="ms-3 text-muted" href="#!">
+          <i className="fas fa-smile"></i>
+        </a>
+        <a className="ms-3" href="#!">
+          <i className="fas fa-paper-plane"></i>
+        </a>
+      </div>
+    );
+  };
 
   const renderLoop = useCallback(
     (deltaTime: number) => {
@@ -73,11 +105,12 @@ const Model: React.FC = memo(() => {
     (async () => {
       const app = new Application({
         view: canvasRef.current!,
-        backgroundAlpha: 0,
-        // resizeTo: window,
+        backgroundAlpha: 0.7,
+        backgroundColor: 0x111184,
+        // resizeTo: window.innerWidth/2,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
-        width: 250,
+        width: window.innerWidth/5,
       });
       appRef.current = app;
 
@@ -130,18 +163,15 @@ const Model: React.FC = memo(() => {
         };
         //window.addEventListener('resize', handleResize);
 
-  
         modelRef.current.on("hit", (hitAreas: string[]) => {
           console.log("Hit areas:", hitAreas); // Debug which areas were hit
 
           if (hitAreas.includes("Head")) {
             console.log("hitarea head");
 
-            const coreModel = modelRef.current.internalModel.coreModel;
-            coreModel.setExpression("F03");
             // coreModel.setParameterValueById("ParamMouthOpenY", 1); // Open mouth
             // setInterval(()=>{
-            //   coreModel.setParameterValueById("ParamMouthOpenY", 1); 
+            //   coreModel.setParameterValueById("ParamMouthOpenY", 1);
             //   console.log('open mouth');
             // }, 5000);
             // Trigger random head motion from your available motions
@@ -149,12 +179,8 @@ const Model: React.FC = memo(() => {
             //const randomMotion =
             //  headMotions[Math.floor(Math.random() * headMotions.length)];
             //console.log(`Playing motion: ${randomMotion}`);
-            //modelRef.current.motion("TapHead");
-            
+            modelRef.current.motion("TapHead");
 
-            setTimeout(() => {
-              coreModel.setParameterValueById("ParamMouthOpenY", 0); // Close after 1s
-            }, 5000);
             console.log("end of function");
           }
 
@@ -195,10 +221,64 @@ const Model: React.FC = memo(() => {
   // }, [lastMessage]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: "100%", height: "100%", display: "block" }}
-    />
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100vh", // Use viewport height or your preferred size
+        
+      }}
+    >
+      {/* Canvas Container - Live2D Model will render here */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
+
+      {/* Chat Input Overlay */}
+      <div
+        style={{
+          position: "absolute",
+          top: "80%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "100%",
+          //maxWidth: "600px",
+          zIndex: 10, // Ensure it stays above canvas
+        }}
+      >
+        <div
+          className="card-footer text-muted d-flex p-1"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            borderRadius: "20px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <img
+            src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
+            alt="avatar"
+            style={{ width: "40px", height: "40px", borderRadius: "50%" }}
+          />
+          <input
+            type="text"
+            className="form-control form-control-lg"
+            placeholder="Enter..."
+            style={{ flex: 1 }}
+          />
+          <button className="ms-2 btn btn-link text-primary">
+            <i className="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 });
 
