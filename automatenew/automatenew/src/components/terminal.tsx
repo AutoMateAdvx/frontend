@@ -53,7 +53,7 @@ const TerminalComponent = () => {
       ref={terminalRef}
       style={{
         width: "100%",
-        height: "250px",
+        height: "40%",
         border: "1px solid #fff",
         backgroundColor: "#000",
         padding: 10,

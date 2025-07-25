@@ -4,6 +4,10 @@ import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm"; // For tables, strikethroughs, etc.
+import rehypeHighlight from "rehype-highlight"; // For syntax highlighting
+import "highlight.js/styles/github.css";
+
 import Live2DCanvas from "../components/live2d";
 import Live2dRender from "../components/live2dRender";
 import Live2dProvider from "../components/live2dProvider";
@@ -110,9 +114,9 @@ function AutoMate() {
           className={`border-end p-3 `}
           style={{
             width: collapsed ? "70px" : "350px",
-            height: "150vh",
+            height: "100vh",
             transition: "width 0.3s ease",
-            overflow: "hidden",
+            overflow: "auto",
             backgroundColor: 'darkgrey',
           }}
         >
@@ -132,18 +136,22 @@ function AutoMate() {
                   </div>
                   <div className="card-body">
                     <p className="text-muted mb-2">
-                      <strong>Level Order:</strong>{" "}
+                      <strong>章节:</strong>{" "}
                       {currentLevel?.order_number} / {currentCourse?.levels.length}
                     </p>
                     <div className="mb-3">
-                      <strong>Description:</strong>
-                      <ReactMarkdown>
+                      <strong>描述:</strong>
+                      <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}>
                         {currentLevel?.description || ""}
                       </ReactMarkdown>
                     </div>
                     <div>
-                      <strong>Requirements:</strong>
-                      <ReactMarkdown>
+                      <strong>要求:</strong>
+                      <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}>
                         {currentLevel?.requirements || ""}
                       </ReactMarkdown>
                     </div>
@@ -180,10 +188,10 @@ function AutoMate() {
             {" "}
             <div className="d-flex ">
               <p className="mb-0 me-5" style={{color:"white"}}>
-                <strong>Course:</strong> {currentLevel?.course.title}
+                <strong>课程:</strong> {currentLevel?.course.title}
               </p>
               <p className="mb-0" style={{color:"white"}}>
-                <strong>Level Number:</strong> {currentLevel?.id} /{" "}
+                <strong>关卡:</strong> {currentLevel?.id} /{" "}
                 {currentLevel?.title}
               </p>
             </div>
@@ -204,7 +212,7 @@ function AutoMate() {
                 style={{ color: "white", marginRight: 1 }}
                 onClick={handleSubmit}
               >
-                Submit
+                提交
               </button>
               <TerminalComponent />
               {/* You can replace this with xterm.js or a simulated output */}
