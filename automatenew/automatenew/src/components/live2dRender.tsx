@@ -119,6 +119,12 @@ const Live2DModel: React.FunctionComponent = (props) => {
     const [canvasSize, setCanvasSize] = useState(Math.min(window.innerWidth, 700))
     const rendererRef = useRef<HTMLCanvasElement>(null)
 
+    const loop = async()=>{
+        live2D?.update()
+        live2D?.setParameter("ParamMouthOpenY", 1)
+        window.requestAnimationFrame(loop)
+    }
+
     useEffect(() => {
         const handleResize = () => setCanvasSize(Math.min(window.innerWidth, 700))
         window.addEventListener("resize", handleResize)
@@ -128,7 +134,7 @@ const Live2DModel: React.FunctionComponent = (props) => {
 
     const load = async () => {
         let cubismCorePath = "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"
-        const live2DModel = new Live2DCubismModel(rendererRef.current!, { cubismCorePath, scale: 1, scaledYPos: false })
+        const live2DModel = new Live2DCubismModel(rendererRef.current!, { autoAnimate: false, cubismCorePath, scale: 1, scaledYPos: false })
         live2DModel.canvas.width = 700
         live2DModel.canvas.height = 700
 
@@ -142,6 +148,7 @@ const Live2DModel: React.FunctionComponent = (props) => {
             // const newBuffer = await compressLive2DTextures(arrayBuffer);
             await live2DModel.load(arrayBuffer);
             setLive2D(live2DModel);
+            loop();
         } catch (error) {
             console.error('Error loading model:', error);
         }
@@ -150,6 +157,8 @@ const Live2DModel: React.FunctionComponent = (props) => {
     useEffect(() => {
         load()
     }, [model])
+
+    
 
     const loadAudio = async () => {
         if (!live2D || !audio) return

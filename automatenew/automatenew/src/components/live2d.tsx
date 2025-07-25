@@ -487,6 +487,6 @@ const Model: React.FC = memo(() => {
       </div>
     </div>
   );
-};
+});
 
 export default Model;

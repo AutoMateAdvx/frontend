@@ -63,11 +63,9 @@ const getLanguageFromFileName = (fileName: string): string => {
   const extension = fileName.split(".").pop()?.toLowerCase();
   switch (extension) {
     case "js":
-      return "javascript";
     case "jsx":
       return "javascript";
     case "ts":
-      return "typescript";
     case "tsx":
       return "typescript";
     case "json":
@@ -100,7 +98,8 @@ const getLanguageFromFileName = (fileName: string): string => {
 const EditorComponent = () => {
   const [tree, setTree] = useState<TreeNode | undefined>();
   const [currentFile, setCurrentFile] = useState<string | null>(null);
-  const [currentContent, setCurrentContent] = useState<string>("");
+  // Store file contents per file, initialized from original fileContents
+  const [fileContentsState, setFileContentsState] = useState<Record<string, string>>(fileContents);
   const [language, setLanguage] = useState("javascript");
 
   useEffect(() => {
@@ -121,11 +120,17 @@ const EditorComponent = () => {
       // Handle file click
       const fileName = utils.getFileName(treeNode.uri);
       setCurrentFile(fileName);
-      setCurrentContent(
-        fileContents[fileName] || `// No content available for ${fileName}`
-      );
       setLanguage(getLanguageFromFileName(fileName));
+      // No need to set currentContent explicitly here, we get it from fileContentsState below
     }
+  };
+
+  const handleEditorChange = (value: string | undefined) => {
+    if (!currentFile || value === undefined) return;
+    setFileContentsState((prev) => ({
+      ...prev,
+      [currentFile]: value,
+    }));
   };
 
   const itemRender = (treeNode: TreeNode) => (
@@ -186,23 +191,19 @@ const EditorComponent = () => {
             overflow: "hidden",
           }}
         >
-          {
-            <Editor
-              height="100%"
-              language={language}
-              value={currentContent}
-              onChange={(value) => {
-                if (value) setCurrentContent(value);
-              }}
-              theme="vs-dark"
-              options={{
-                padding: { top: 10 },
-                fontSize: 14,
-                automaticLayout: true,
-                minimap: { enabled: true },
-              }}
-            />
-          }
+          <Editor
+            height="100%"
+            language={language}
+            value={currentFile ? fileContentsState[currentFile] : ""}
+            onChange={handleEditorChange}
+            theme="vs-dark"
+            options={{
+              padding: { top: 10 },
+              fontSize: 14,
+              automaticLayout: true,
+              minimap: { enabled: true },
+            }}
+          />
         </div>
       </div>
     </div>

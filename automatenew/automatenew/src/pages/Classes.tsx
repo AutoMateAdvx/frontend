@@ -1,15 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MyModal from "../components/modal";
 import "bootstrap/dist/js/bootstrap.bundle.min";
+import { listClasses } from "../Api";
+import { Course, Level } from "../Interface";
 
 function Classes() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [courses, setCourses] = useState<Course[]>();
 
   const handleShow = () => setShowModal(true);
   const handleClose = () => setShowModal(false);
+
+  useEffect(() => {
+
+    const fetchData = async () => {
+      try {
+        const data = await listClasses();
+        console.log(data);
+        setCourses(data.courses);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+
+
+  const handleCardClick=(item: Course)=>{
+    const courseId = item.id;
+    const savedLevel = localStorage.getItem(`course_${courseId}_level`);
+    const level = savedLevel !== null ? parseInt(savedLevel) : 1;
+    if (savedLevel === null) {
+      localStorage.setItem(`course_${courseId}_level`, "1");
+    }
+    navigate("/automate", {
+      state: { courseId, level },
+    });
+  }
 
   return (
     <div
@@ -54,39 +85,54 @@ function Classes() {
       {/* Card Grid */}
       <div className="container pb-5">
         <div className="row g-4">
-          {[1, 2, 3, 4, 5, 6].map((item) => (
-            <div key={item} className="col-12 col-md-6 col-lg-4">
-              <Link
-                to={`/automate`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <div
-                  className="card bg-dark text-white border-0 rounded-4 shadow-sm h-100"
-                  style={{
-                    transition: "all 0.3s ease",
-                    transform:
-                      hoveredCard === item ? "scale(1.08)" : "scale(1)",
-                    boxShadow:
-                      hoveredCard === item
-                        ? "0 10px 20px rgba(0,0,0,0.3)"
-                        : "none",
-                  }}
-                  onMouseEnter={() => setHoveredCard(item)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  <div className="card-header border-0 bg-transparent fw-semibold">
-                    Class Title {item}
+          {Array.isArray(courses) &&
+            courses?.map((item) => (
+              <div key={item.id} className="col-12 col-md-6 col-lg-4"style={{ cursor: "pointer" }}
+              onClick={() => handleCardClick(item)}
+        >
+                
+                  <div
+                    className="card bg-dark text-white border-0 rounded-4 shadow-sm h-100"
+                    style={{
+                      transition: "all 0.3s ease",
+                      transform:
+                        hoveredCard === item.id ? "scale(1.08)" : "scale(1)",
+                      boxShadow:
+                        hoveredCard === item.id
+                          ? "0 10px 20px rgba(0,0,0,0.3)"
+                          : "none",
+                    }}
+                    onMouseEnter={() => setHoveredCard(item.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    {item.image_url && (
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="card-img-top"
+                        style={{
+                          height: "220px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                    <div className="card-body p-4">
+                      <h5 className="card-title fw-bold text-light mb-3">
+                        {item.title}
+                      </h5>
+                      <p className="card-text text-light">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="card-footer bg-transparent border-0 text-end pe-4 pb-3">
+                      <button className="btn btn-outline-dark rounded-pill px-4">
+                        View Class
+                      </button>
+                    </div>
                   </div>
-                  <div className="card-body">
-                    <p className="card-text text-secondary small">
-                      This is some placeholder content for the selected class.
-                      You can add details, lessons, or actions here.
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
+              
+              </div>
+            ))}
         </div>
       </div>
     </div>
