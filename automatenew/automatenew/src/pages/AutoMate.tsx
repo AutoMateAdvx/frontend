@@ -102,7 +102,7 @@ function AutoMate() {
   };
 
   const handleNext = () => {
-    const levelIds = currentCourse?.levels?.map((level) => level.id) || [];
+    const levelIds = currentCourse?.levels?.map((level) => level.order_number) || [];
     const maxLevelId = Math.max(...levelIds);
     setShowModal(false);
 
@@ -423,7 +423,7 @@ function AutoMate() {
                       transition: "all 0.3s ease",
                     }}
                     onClick={() =>
-                      handleSubmit(currentLevel.id, currentLevel.course_id)
+                      handleSubmit(currentLevel.order_number, currentLevel.course_id)
                     }
                   >
                     提交

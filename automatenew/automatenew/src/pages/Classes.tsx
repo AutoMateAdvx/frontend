@@ -56,7 +56,7 @@ function Classes() {
     try {
       const data = await getCourse({ course_id: courseId });
       console.log(data.levels[0].id);
-      lowestLevelInCourse = data.levels[0].id;
+      lowestLevelInCourse = data.levels[0].order_number;
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
