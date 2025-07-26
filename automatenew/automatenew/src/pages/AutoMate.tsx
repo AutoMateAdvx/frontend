@@ -541,7 +541,7 @@ function AutoMate() {
           {/* Model Viewer - Glass panel */}
           <div
             style={{
-              width: "25%",
+              width: "35%",
               backgroundColor: "rgba(17, 34, 64, 0.7)",
               backdropFilter: "blur(10px)",
               borderRadius: "8px",
@@ -554,7 +554,7 @@ function AutoMate() {
             <iframe
         src="https://ten-playground-app.preview.huawei-zeabur.cn/"
         style={{
-          transform: "translate(-700px, -120px)",
+          transform: "translate(-700px, -80px)",
           width: "1200px",
           height: "900px",
           pointerEvents: "auto"
