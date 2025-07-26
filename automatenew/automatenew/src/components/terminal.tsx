@@ -2,7 +2,11 @@ import React, { useEffect, useRef } from "react";
 import { Terminal } from "xterm";
 import "xterm/css/xterm.css";
 
-const TerminalComponent = () => {
+interface TerminalComponentProps {
+  feedback?: string; // or whatever type your feedback is
+}
+
+const TerminalComponent: React.FC<TerminalComponentProps & { submitCount: number }> = ({ feedback, submitCount }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const term = useRef<Terminal | null>(null);
   const inputBuffer = useRef<string>("");
@@ -47,6 +51,17 @@ const TerminalComponent = () => {
       term.current = terminal;
     }
   }, []);
+
+  useEffect(() => {
+    if (feedback && term.current) {
+      // Clear the current line if needed
+      term.current.write('\r\n');
+      // Write the feedback
+      term.current.write(feedback + '\r\n');
+      // Write the prompt again
+      term.current.write('$ ');
+    }
+  }, [submitCount]);
 
   return (
     <div

@@ -3,7 +3,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import EditorComponent from "../components/editor";
 import TerminalComponent from "../components/terminal";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import Markdown from "react-markdown";
+import { Markdown } from '@ant-design/pro-editor';
+import { Highlight } from '@ant-design/pro-editor';
 import remarkGfm from "remark-gfm"; // For tables, strikethroughs, etc.
 import rehypeHighlight from "rehype-highlight"; // For syntax highlighting
 import "highlight.js/styles/github-dark.css";
@@ -39,6 +40,11 @@ function AutoMate() {
   const [editedFileTree, setEditedFileTree] = useState<any>(null);
   const [submitting, setIsSubmitting] = useState<boolean>(false);
   const [showModal, setShowModal] = useState(false);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const [showWrongModal, setShowWrongModal] = useState(false);
+
+  const [feedback, setFeedback] = useState<string>("");
+  const [submitCount, setSubmitCount] = useState<number>(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,6 +73,7 @@ function AutoMate() {
   }, []);
 
   useEffect(() => {
+    setIsLoading(true);
     const fetchData = async () => {
       console.log("Level to get 2", levelToGet);
       try {
@@ -102,9 +109,18 @@ function AutoMate() {
     }
   };
 
+  const triggerLoadingModal = () => {
+    setShowLoadingModal(true);
+  };
+
+  const triggerShowWrongModal = () => {
+    setShowWrongModal(true);
+  };
+
   const handleSubmit = async (levelId: number, courseId: number) => {
     console.log("1", editedFileTree);
     setIsSubmitting(true);
+    triggerLoadingModal();
     if (editedFileTree == null) {
       console.log("not edited???");
       setEditedFileTree(currentLevel?.file_tree);
@@ -121,6 +137,9 @@ function AutoMate() {
 
       const result = response;
       setIsSubmitting(false);
+      setShowLoadingModal(false);
+      setFeedback(response.feedback);
+      setSubmitCount((prev) => prev + 1);
       if (result.passed == true) {
         console.log("yay u passed");
         if (!currentCourse?.levels?.length) {
@@ -129,6 +148,7 @@ function AutoMate() {
         }
         triggerModal();
       } else {
+        triggerShowWrongModal();
         console.log("failed. try again");
       }
     } catch (error) {
@@ -210,7 +230,7 @@ function AutoMate() {
               {!isLoading ? (
                 <div
                   style={{
-                    backgroundColor: "#112240",
+                    backgroundColor: "#ccd6f6",
                     borderRadius: "8px",
                     padding: "1.5rem",
                     boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
@@ -218,7 +238,7 @@ function AutoMate() {
                 >
                   <div
                     style={{
-                      color: "#ccd6f6",
+                      color: "darkblue",
                       fontSize: "1.25rem",
                       fontWeight: "bold",
                       marginBottom: "1rem",
@@ -230,22 +250,25 @@ function AutoMate() {
                   </div>
                   <div style={{ color: "#8892b0" }}>
                     <p style={{ marginBottom: "1rem" }}>
-                      <strong style={{ color: "#ccd6f6" }}>章节:</strong>{" "}
+                      <strong style={{ color: "darkblue" }}>章节:</strong>{" "}
                       {currentLevel?.order_number}/
                       {currentCourse?.levels.length}
                     </p>
                     <div style={{ marginBottom: "1.5rem" }}>
-                      <strong style={{ color: "#ccd6f6" }}>描述:</strong>
-                      <div style={{ marginTop: "0.5rem" }}>
-                        <Markdown remarkPlugins={[remarkGfm]}>
+                      <strong style={{ color: "darkblue" }}>描述:</strong>
+                      <div style={{ color: 'white', marginTop: "0.5rem" }}>
+                        <Markdown 
+                        //remarkPlugins={[remarkGfm]}
+                        >
                           {currentLevel?.description || ""}
+                          {/* {currentLevel?.description || ""} */}
                         </Markdown>
                       </div>
                     </div>
                     <div>
-                      <strong style={{ color: "#ccd6f6" }}>要求:</strong>
+                      <strong style={{ color: "darkblue" }}>要求:</strong>
                       <div style={{ marginTop: "0.5rem" }}>
-                        <Markdown remarkPlugins={[remarkGfm]}>
+                        <Markdown >
                           {currentLevel?.requirements || ""}
                         </Markdown>
                       </div>
@@ -333,10 +356,12 @@ function AutoMate() {
                   border: "1px solid #1e2a3a",
                   overflow: "hidden",
                   boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  minHeight: "400px",
                 }}
               >
                 {currentLevel?.file_tree ? (
                   <EditorComponent
+                    key={levelToGet}
                     fileTree={currentLevel?.file_tree}
                     onFileTreeChange={setEditedFileTree}
                   />
@@ -407,7 +432,12 @@ function AutoMate() {
                   </div>
                 )}
                 {showModal && (
-                  <Modal show={showModal} onHide={() => setShowModal(false)}>
+                  <Modal
+                    show={showModal}
+                    //onHide={() => [setShowModal(false), handleNext]}
+                    backdrop="static" // Prevents closing when clicking outside
+                    keyboard={false}
+                  >
                     <Modal.Header closeButton>
                       <Modal.Title>关卡通过！</Modal.Title>
                     </Modal.Header>
@@ -428,8 +458,46 @@ function AutoMate() {
                     </Modal.Footer>
                   </Modal>
                 )}
+                {showLoadingModal && (
+                  <Modal
+                    show={showLoadingModal}
+                    //onHide={() => setShowLoadingModal(false)}
+                    backdrop="static" // Prevents closing when clicking outside
+                    keyboard={false}
+                  >
+                    <Modal.Header closeButton>
+                      <Modal.Title>提交成功！ 正在加载...</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>正在加载， 请稍等...</Modal.Body>
+                  </Modal>
+                )}
+                {showWrongModal && (
+                  <div
+                    className="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-start"
+                    role="alert"
+                  >
+                    <div>
+                      <strong>项目出错了</strong>
+                      <br />
+                      请看看以下的提示
+                    </div>
+                    <button
+                      type="button"
+                      className="close ms-3"
+                      aria-label="Close"
+                      onClick={() => setShowWrongModal(false)}
+                      style={{ fontSize: "1.5rem", lineHeight: "1" }}
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                )}
 
-                <TerminalComponent />
+                <TerminalComponent
+                  //key= {feedback}
+                  feedback={feedback}
+                  submitCount={submitCount}
+                />
               </div>
             </div>
           }

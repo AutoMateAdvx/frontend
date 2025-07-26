@@ -218,7 +218,7 @@ const SMOOTHNESS = 1;
 const RECENTER_DELAY = 1000;
 
 const preloadModel = () =>
-  Live2DModel.from("http://localhost:8888/Haru/Haru.model3.json");
+  Live2DModel.from("http://localhost:8000/Haru/Haru.model3.json");
 
 const Model: React.FC = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
