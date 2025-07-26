@@ -46,6 +46,8 @@ function AutoMate() {
   const [feedback, setFeedback] = useState<string>("");
   const [submitCount, setSubmitCount] = useState<number>(0);
 
+  const [successCount, setSuccessCount] = useState<number>(0);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 1100;
@@ -204,7 +206,7 @@ function AutoMate() {
         {/* Sidebar - Elegant dark blue */}
         <div
           style={{
-            width: collapsed ? "70px" : "350px",
+            width: collapsed ? "70px" : "500px",
             backgroundColor: "#0a192f",
             transition: "width 0.3s ease",
             overflowY: "auto",
@@ -227,6 +229,21 @@ function AutoMate() {
 
           {!collapsed && (
             <div style={{ padding: "1rem", flex: 1 }}>
+              <button
+                style={{
+                  backgroundColor: "#0a192f",
+                  color: "#64ffda",
+                  border: "1px solid #64ffda",
+                  borderRadius: "20px",
+                  padding: "0.5rem 1rem",
+                  marginBottom: "1rem",
+                  width: "100%",
+                  transition: "all 0.3s ease",
+                }}
+                onClick={() => navigate("/")}
+              >
+                ← 课程列表
+              </button>
               {!isLoading ? (
                 <div
                   style={{
@@ -290,21 +307,7 @@ function AutoMate() {
                   <div style={{ marginTop: "1rem" }}>正在加载...</div>
                 </div>
               )}
-              <button
-                style={{
-                  backgroundColor: "#0a192f",
-                  color: "#64ffda",
-                  border: "1px solid #64ffda",
-                  borderRadius: "20px",
-                  padding: "0.5rem 1rem",
-                  marginTop: "1.5rem",
-                  width: "100%",
-                  transition: "all 0.3s ease",
-                }}
-                onClick={() => navigate("/")}
-              >
-                ← 课程列表
-              </button>
+              
             </div>
           )}
         </div>
@@ -315,7 +318,7 @@ function AutoMate() {
             flex: 1,
             display: "flex",
             padding: "1rem",
-            overflow: "hidden",
+            overflow: "auto",
             backgroundColor: "#0a192f",
           }}
         >
@@ -338,10 +341,10 @@ function AutoMate() {
                 }}
               >
                 <p style={{ marginRight: "2rem" }}>
-                  <strong>课程:</strong> {currentLevel?.course.title}
+                  <strong>课程: </strong> {currentLevel?.course.title}
                 </p>
                 <p>
-                  <strong>关卡:</strong> {currentLevel?.id}/
+                  <strong>关卡: </strong> 
                   {currentLevel?.title}
                 </p>
               </div>
@@ -359,7 +362,7 @@ function AutoMate() {
                   minHeight: "400px",
                 }}
               >
-                {currentLevel?.file_tree ? (
+                {(!isLoading && currentLevel?.file_tree) ? (
                   <EditorComponent
                     key={levelToGet}
                     fileTree={currentLevel?.file_tree}
@@ -395,7 +398,7 @@ function AutoMate() {
                   border: "1px solid #1e2a3a",
                 }}
               >
-                {currentLevel ? (
+                {(!isLoading && currentLevel) ? (
                   <button
                     style={{
                       backgroundColor: "#64ffda",
