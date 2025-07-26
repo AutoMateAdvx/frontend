@@ -42,6 +42,7 @@ function AutoMate() {
   const [showModal, setShowModal] = useState(false);
   const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [showWrongModal, setShowWrongModal] = useState(false);
+  const [showEmptyFileModal, setShowEmptyFileModal] = useState(false);
 
   const [feedback, setFeedback] = useState<string>("");
   const [submitCount, setSubmitCount] = useState<number>(0);
@@ -86,6 +87,7 @@ function AutoMate() {
         console.log(data);
         setCurrentLevel(data);
         setIsLoading(false);
+        setEditedFileTree(data?.file_tree);
         console.log("FILETREEONE", data?.file_tree);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -118,16 +120,21 @@ function AutoMate() {
   const triggerShowWrongModal = () => {
     setShowWrongModal(true);
   };
+  const triggerShowEmptyFileModal = () => {
+    setShowEmptyFileModal(true);
+  };
 
   const handleSubmit = async (levelId: number, courseId: number) => {
     console.log("1", editedFileTree);
     setIsSubmitting(true);
     triggerLoadingModal();
-    if (editedFileTree == null) {
-      console.log("not edited???");
-      setEditedFileTree(currentLevel?.file_tree);
-    }
-    console.log("2", currentLevel?.file_tree);
+    setShowEmptyFileModal(false);
+    setShowWrongModal(false);
+    // if (editedFileTree == null) {
+    //   console.log("not edited???");
+    //   setEditedFileTree(currentLevel?.file_tree);
+    // }
+    //console.log("2", currentLevel?.file_tree);
 
     try {
       const response = await submitCourse({
@@ -153,8 +160,13 @@ function AutoMate() {
         triggerShowWrongModal();
         console.log("failed. try again");
       }
-    } catch (error) {
-      console.error("Error creating course:", error);
+    } catch (error:any) {
+      setIsSubmitting(false);
+      setShowLoadingModal(false);
+      //if(error.response.status === 500){
+        triggerShowEmptyFileModal();
+      //}
+      console.error("Error submitting course:", error);
       // Optionally show error feedback to user here
     }
   };
@@ -489,6 +501,27 @@ function AutoMate() {
                       className="close ms-3"
                       aria-label="Close"
                       onClick={() => setShowWrongModal(false)}
+                      style={{ fontSize: "1.5rem", lineHeight: "1" }}
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                )}
+                {showEmptyFileModal && (
+                  <div
+                    className="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-start"
+                    role="alert"
+                  >
+                    <div>
+                      <strong>您提交了空的文件</strong>
+                      <br />
+                      请再试试关卡
+                    </div>
+                    <button
+                      type="button"
+                      className="close ms-3"
+                      aria-label="Close"
+                      onClick={() => setShowEmptyFileModal(false)}
                       style={{ fontSize: "1.5rem", lineHeight: "1" }}
                     >
                       <span aria-hidden="true">&times;</span>
