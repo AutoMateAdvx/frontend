@@ -10,7 +10,7 @@
 
 # production
 /build
-
+/automatenew/automatenew/dist/*
 # misc
 .DS_Store
 .env.local
