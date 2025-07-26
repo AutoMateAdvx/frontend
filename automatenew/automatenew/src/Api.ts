@@ -113,7 +113,7 @@ interface SubmitCourseParams {
 
 
 export const submitCourse = async (params: SubmitCourseParams) => {
-  console.log(params);
+  console.log("PARAMS TO CHECK", params);
   const response = await fetch(`${API_BASE_URL}/api/levels/check-completion`, {
     method: "POST",
     headers: {

@@ -190,9 +190,8 @@ const EditorComponent = ({
     };
     updateTreeContent(clonedTree);
     onFileTreeChange(clonedTree);
-    console.log("clone", clonedTree)
+    console.log("clone", clonedTree);
   };
-  
 
   const itemRender = (treeNode: TreeNode) => (
     <FileItemWithFileIcon treeNode={treeNode} />
@@ -252,19 +251,25 @@ const EditorComponent = ({
             overflow: "hidden",
           }}
         >
-          <Editor
-            height="100%"
-            language={language}
-            value={currentFile ? fileContentsState[currentFile] : "testing"}
-            onChange={handleEditorChange}
-            theme="vs-dark"
-            options={{
-              padding: { top: 10 },
-              fontSize: 14,
-              automaticLayout: true,
-              minimap: { enabled: true },
-            }}
-          />
+          {currentFile ? (
+            <Editor
+              height="100%"
+              language={language}
+              value={currentFile ? fileContentsState[currentFile] : "testing"}
+              onChange={handleEditorChange}
+              theme="vs-dark"
+              options={{
+                padding: { top: 10 },
+                fontSize: 14,
+                automaticLayout: true,
+                minimap: { enabled: true },
+              }}
+            />
+          ) : (
+            <p style={{ color: "#ffffff", fontSize: "16px" }}>
+      Please select a file to continue
+    </p>
+          )}
         </div>
       </div>
     </div>

@@ -15,6 +15,8 @@ import Model from "../components/live2d";
 import { getLevel, getCourse, submitCourse } from "../Api";
 import { CurrentLevel, CurrentCourse } from "../Interface";
 
+import { Modal, Button } from "react-bootstrap";
+
 type LocationState = {
   courseId: number;
   level: number;
@@ -35,6 +37,8 @@ function AutoMate() {
   const [levelToGet, setLevelToGet] = useState(level);
 
   const [editedFileTree, setEditedFileTree] = useState<any>(null);
+  const [submitting, setIsSubmitting] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -64,6 +68,7 @@ function AutoMate() {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log("Level to get 2", levelToGet);
       try {
         const data = await getLevel({
           course_id: courseId,
@@ -81,41 +86,54 @@ function AutoMate() {
     localStorage.setItem(`course_${courseId}_level`, `${levelToGet}`);
   }, [levelToGet]);
 
-  const handleSubmit = async(levelId:number, courseId:number) => {
+  const triggerModal = () => {
+    setShowModal(true);
+  };
+
+  const handleNext = () => {
+    const levelIds = currentCourse?.levels?.map((level) => level.id) || [];
+    const maxLevelId = Math.max(...levelIds);
+    setShowModal(false);
+
+    if (levelToGet < maxLevelId) {
+      setLevelToGet((prev: number) => prev + 1);
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleSubmit = async (levelId: number, courseId: number) => {
     console.log("1", editedFileTree);
-    if(editedFileTree == null){
+    setIsSubmitting(true);
+    if (editedFileTree == null) {
+      console.log("not edited???");
       setEditedFileTree(currentLevel?.file_tree);
     }
     console.log("2", currentLevel?.file_tree);
 
-    try{
+    try {
       const response = await submitCourse({
-        level_id:levelId,
-        course_id:courseId,
-        user_file_tree: editedFileTree,
+        level_id: levelId,
+        course_id: courseId,
+        user_file_tree: editedFileTree || currentLevel?.file_tree,
       });
       console.log("API response:", response);
-    }catch (error) {
+
+      const result = response;
+      setIsSubmitting(false);
+      if (result.passed == true) {
+        console.log("yay u passed");
+        if (!currentCourse?.levels?.length) {
+          console.error("No course selected");
+          return;
+        }
+        triggerModal();
+      } else {
+        console.log("failed. try again");
+      }
+    } catch (error) {
       console.error("Error creating course:", error);
       // Optionally show error feedback to user here
-    }
-
-
-    if (!currentCourse?.levels?.length) {
-      console.error("No course selected");
-      return;
-    }
-
-    const levelIds = currentCourse.levels.map((level) => level.id);
-    const maxLevelId = Math.max(...levelIds);
-
-    const totalLevels = maxLevelId;
-    console.log("total levels", totalLevels);
-    if (levelToGet < totalLevels) {
-      setLevelToGet((prev: number) => prev + 1);
-      console.log("level to get", levelToGet);
-    } else {
-      navigate("/");
     }
   };
 
@@ -130,15 +148,26 @@ function AutoMate() {
       }}
     >
       {/* Top Navbar - Fixed height */}
-      <nav className="navbar navbar-expand-lg" style={{ 
-        backgroundColor: '#020c1b',
-        borderBottom: '1px solid #1e2a3a'
-      }}>
+      <nav
+        className="navbar navbar-expand-lg"
+        style={{
+          backgroundColor: "#020c1b",
+          borderBottom: "1px solid #1e2a3a",
+        }}
+      >
         <div className="container-fluid">
-          <a className="navbar-brand fw-bold" href="#" style={{ color: '#64ffda' }}> {/* Teal accent */}
+          <a
+            className="navbar-brand fw-bold"
+            href="#"
+            style={{ color: "#64ffda" }}
+          >
+            {" "}
+            {/* Teal accent */}
             Auto.Mate
           </a>
-          <span className="navbar-text" style={{ color: '#8892b0' }}> {/* Muted blue-gray */}
+          <span className="navbar-text" style={{ color: "#8892b0" }}>
+            {" "}
+            {/* Muted blue-gray */}
             Your very own AI powerhouse #edTech
           </span>
         </div>
@@ -235,7 +264,7 @@ function AutoMate() {
                   }}
                 >
                   <div className="spinner-grow" style={{ color: "#64ffda" }} />
-                  <div style={{ marginTop: "1rem" }}>Loading...</div>
+                  <div style={{ marginTop: "1rem" }}>正在加载...</div>
                 </div>
               )}
               <button
@@ -268,104 +297,142 @@ function AutoMate() {
           }}
         >
           {/* Editor/Terminal Column */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              marginRight: "1rem",
-            }}
-          >
-            {/* Header */}
-            <div
-              style={{
-                display: "flex",
-                marginBottom: "1rem",
-                color: "#ccd6f6",
-              }}
-            >
-              <p style={{ marginRight: "2rem" }}>
-                <strong>课程:</strong> {currentLevel?.course.title}
-              </p>
-              <p>
-                <strong>关卡:</strong> {currentLevel?.id}/{currentLevel?.title}
-              </p>
-            </div>
-
-            {/* Editor - Glassmorphism effect */}
+          {
             <div
               style={{
                 flex: 1,
-                backgroundColor: "rgba(17, 34, 64, 0.7)",
-                backdropFilter: "blur(10px)",
-                borderRadius: "8px",
-                border: "1px solid #1e2a3a",
-                overflow: "hidden",
-                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                display: "flex",
+                flexDirection: "column",
+                marginRight: "1rem",
               }}
             >
-              {currentLevel?.file_tree ? (
-                <EditorComponent fileTree={currentLevel?.file_tree} onFileTreeChange={setEditedFileTree} />
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "200px",
-                    color: "#64ffda",
-                  }}
-                >
-                  <div className="spinner-grow" style={{ color: "#64ffda" }} />
-                  <div style={{ marginTop: "1rem" }}>Loading...</div>
-                </div>
-              )}
-            </div>
-
-            {/* Terminal Section */}
-            <div
-              style={{
-                marginTop: "1rem",
-                backgroundColor: "rgba(17, 34, 64, 0.7)",
-                borderRadius: "8px",
-                padding: "1rem",
-                border: "1px solid #1e2a3a",
-              }}
-            >
-              {currentLevel?(<button
+              {/* Header */}
+              <div
                 style={{
-                  backgroundColor: "#64ffda",
-                  color: "#0a192f",
-                  border: "none",
-                  borderRadius: "4px",
-                  padding: "0.5rem 1rem",
+                  display: "flex",
                   marginBottom: "1rem",
-                  fontWeight: "bold",
-                  transition: "all 0.3s ease",
+                  color: "#ccd6f6",
                 }}
-                onClick={() => handleSubmit(currentLevel.id, currentLevel.course_id)}
               >
-                提交
-              </button>):
-              (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "200px",
-                    color: "#64ffda",
-                  }}
-                >
-                  <div className="spinner-grow" style={{ color: "#64ffda" }} />
-                  <div style={{ marginTop: "1rem" }}>Loading...</div>
-                </div>
-              )}
-              <TerminalComponent />
+                <p style={{ marginRight: "2rem" }}>
+                  <strong>课程:</strong> {currentLevel?.course.title}
+                </p>
+                <p>
+                  <strong>关卡:</strong> {currentLevel?.id}/
+                  {currentLevel?.title}
+                </p>
+              </div>
+
+              {/* Editor - Glassmorphism effect */}
+              <div
+                style={{
+                  flex: 1,
+                  backgroundColor: "rgba(17, 34, 64, 0.7)",
+                  backdropFilter: "blur(10px)",
+                  borderRadius: "8px",
+                  border: "1px solid #1e2a3a",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                }}
+              >
+                {currentLevel?.file_tree ? (
+                  <EditorComponent
+                    fileTree={currentLevel?.file_tree}
+                    onFileTreeChange={setEditedFileTree}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "200px",
+                      color: "#64ffda",
+                    }}
+                  >
+                    <div
+                      className="spinner-grow"
+                      style={{ color: "#64ffda" }}
+                    />
+                    <div style={{ marginTop: "1rem" }}>正在加载...</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Terminal Section */}
+              <div
+                style={{
+                  marginTop: "1rem",
+                  backgroundColor: "rgba(17, 34, 64, 0.7)",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                  border: "1px solid #1e2a3a",
+                }}
+              >
+                {currentLevel ? (
+                  <button
+                    style={{
+                      backgroundColor: "#64ffda",
+                      color: "#0a192f",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "0.5rem 1rem",
+                      marginBottom: "1rem",
+                      fontWeight: "bold",
+                      transition: "all 0.3s ease",
+                    }}
+                    onClick={() =>
+                      handleSubmit(currentLevel.id, currentLevel.course_id)
+                    }
+                  >
+                    提交
+                  </button>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "200px",
+                      color: "#64ffda",
+                    }}
+                  >
+                    <div
+                      className="spinner-grow"
+                      style={{ color: "#64ffda" }}
+                    />
+                    <div style={{ marginTop: "1rem" }}>正在加载...</div>
+                  </div>
+                )}
+                {showModal && (
+                  <Modal show={showModal} onHide={() => setShowModal(false)}>
+                    <Modal.Header closeButton>
+                      <Modal.Title>关卡通过！</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                      <div className="input-group mb-3 mt-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          value="通过关卡成功"
+                          readOnly
+                        />
+                      </div>
+                    </Modal.Body>
+                    <Modal.Footer>
+                      <Button variant="dark" onClick={handleNext}>
+                        下一关
+                      </Button>
+                    </Modal.Footer>
+                  </Modal>
+                )}
+
+                <TerminalComponent />
+              </div>
             </div>
-          </div>
+          }
 
           {/* Model Viewer - Glass panel */}
           <div
