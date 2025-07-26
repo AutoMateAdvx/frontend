@@ -552,7 +552,7 @@ function AutoMate() {
             }}
           >
             <iframe
-        src="http://localhost:3000"
+        src="https://ten-playground-app.preview.huawei-zeabur.cn/"
         style={{
           transform: "translate(-700px, -120px)",
           width: "1200px",
