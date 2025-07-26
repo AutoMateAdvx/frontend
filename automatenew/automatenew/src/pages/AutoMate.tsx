@@ -551,7 +551,16 @@ function AutoMate() {
               boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
             }}
           >
-            <Model />
+            <iframe
+        src="http://localhost:3000"
+        style={{
+          transform: "translate(-700px, -120px)",
+          width: "1200px",
+          height: "900px",
+          pointerEvents: "auto"
+        }}
+        draggable="false" // Important for Firefox
+      />
           </div>
         </div>
       </div>
